@@ -1,0 +1,153 @@
+---
+import { KATEGORI_RENKLERI, ilkYayinevi, ilkYil, type Eser } from "../lib/books";
+import { kapakYolu } from "../lib/varliklar";
+
+/**
+ * Kitap kapağı.
+ *
+ * Gerçek kapak `public/covers/<slug>.webp|jpg|png` olarak konulduğunda
+ * doğrudan o gösteriliyor. KAPAK GELMEDEN ÖNCE bir "görsel yok" kutusu
+ * değil, kitabın kendi künyesinden üretilen tipografik bir kapak çiziliyor:
+ * başlık, yazar, yayınevi, kategori rengi ve bir yıldız. Bir yazar
+ * sitesinde boş gri dikdörtgenler, kataloğun kendisini yarım gösteriyor.
+ *
+ * Kitapçı CDN'lerindeki görseller (books.json → coverRemote) BİLEREK
+ * kullanılmıyor: hem hotlink hem telif sorunu.
+ */
+interface Props {
+  eser: Eser;
+  genislik?: number;
+  oncelik?: boolean;
+  class?: string;
+}
+const { eser, genislik = 220, oncelik = false, class: sinif = "" } = Astro.props;
+
+const yol = kapakYolu(eser.slug);
+const yukseklik = Math.round(genislik * 1.48);
+const renk = KATEGORI_RENKLERI[eser.category];
+const yil = ilkYil(eser);
+const yayinevi = ilkYayinevi(eser);
+
+/** Uzun başlığı satırlara böl — SVG kendiliğinden sarmıyor. */
+function satirla(metin: string, enFazla: number): string[] {
+  const kelimeler = metin.split(/\s+/);
+  const satirlar: string[] = [];
+  let simdiki = "";
+  for (const k of kelimeler) {
+    if ((simdiki + " " + k).trim().length > enFazla && simdiki) {
+      satirlar.push(simdiki.trim());
+      simdiki = k;
+    } else {
+      simdiki = `${simdiki} ${k}`.trim();
+    }
+  }
+  if (simdiki) satirlar.push(simdiki);
+  return satirlar.slice(0, 5);
+}
+
+const satirlar = satirla(eser.title.replace(/\s*[–-]\s*/g, " – "), 16);
+const yazar = (eser.originalAuthor ?? "").replace(/\s*\(.*?\)\s*/g, "");
+const basSatir = satirlar.length > 3 ? 46 : 54;
+
+const r = 7;
+const ic = r * 0.414 * Math.SQRT2;
+const yildiz = Array.from({ length: 16 }, (_, i) => {
+  const aci = (Math.PI / 8) * i - Math.PI / 2;
+  const yc = i % 2 === 0 ? r : ic;
+  return `${(110 + yc * Math.cos(aci)).toFixed(2)},${(26 + yc * Math.sin(aci)).toFixed(2)}`;
+}).join(" ");
+---
+
+{
+  yol ? (
+    <img
+      src={yol}
+      alt={`${eser.title} kapağı`}
+      width={genislik}
+      height={yukseklik}
+      loading={oncelik ? "eager" : "lazy"}
+      decoding="async"
+      class={`kapak-gorsel ${sinif}`}
+      style={`width:${genislik}px;height:auto;aspect-ratio:1/1.48;object-fit:cover`}
+    />
+  ) : (
+    <svg
+      viewBox="0 0 220 326"
+      width={genislik}
+      height={yukseklik}
+      class={`kapak-svg ${sinif}`}
+      role="img"
+      aria-label={`${eser.title} — tipografik kapak`}
+      style={`width:${genislik}px;height:auto`}
+    >
+      <rect width="220" height="326" fill="var(--kagit-2)" />
+      <rect x="0" y="0" width="7" height="326" fill={renk} opacity="0.9" />
+      <rect
+        x="16"
+        y="12"
+        width="192"
+        height="302"
+        fill="none"
+        stroke={renk}
+        stroke-width="0.75"
+        opacity="0.5"
+      />
+      <polygon points={yildiz} fill={renk} opacity="0.8" />
+      <line x1="34" y1="44" x2="196" y2="44" stroke="var(--varak)" stroke-width="0.6" opacity="0.8" />
+
+      {satirlar.map((satir, i) => (
+        <text
+          x="110"
+          y={basSatir + 44 + i * 24}
+          text-anchor="middle"
+          font-family="Cormorant Garamond, Georgia, serif"
+          font-size="20"
+          font-weight="600"
+          fill="var(--murekkep)"
+        >
+          {satir}
+        </text>
+      ))}
+
+      {yazar ? (
+        <text
+          x="110"
+          y={basSatir + 44 + satirlar.length * 24 + 22}
+          text-anchor="middle"
+          font-family="EB Garamond, Georgia, serif"
+          font-size="13"
+          font-style="italic"
+          fill="var(--sessiz)"
+        >
+          {yazar.length > 28 ? `${yazar.slice(0, 27)}…` : yazar}
+        </text>
+      ) : null}
+
+      <line x1="34" y1="272" x2="196" y2="272" stroke="var(--varak)" stroke-width="0.6" opacity="0.8" />
+      <text
+        x="110"
+        y="292"
+        text-anchor="middle"
+        font-family="Inter, system-ui, sans-serif"
+        font-size="9"
+        letter-spacing="1.2"
+        fill="var(--sessiz)"
+      >
+        {yayinevi.toLocaleUpperCase("tr").slice(0, 26)}
+      </text>
+      {yil ? (
+        <text
+          x="110"
+          y="306"
+          text-anchor="middle"
+          font-family="Inter, system-ui, sans-serif"
+          font-size="9"
+          letter-spacing="1.2"
+          fill="var(--sessiz)"
+        >
+          {yil}
+        </text>
+      ) : null}
+    </svg>
+  )
+}

@@ -1,0 +1,41 @@
+---
+/**
+ * Rumi kıvrım ayracı — bölümler arasında `<hr>` yerine.
+ *
+ * İki yana doğru incelen kıvrımlar, ortada sekiz köşeli yıldız. Çizgi
+ * yerine bu kullanılıyor çünkü sayfa bir kitap sayfası gibi okunsun
+ * isteniyor; düz bir çizgi arayüz, kıvrım ise kitap hissi veriyor.
+ */
+interface Props {
+  class?: string;
+  genislik?: number;
+}
+const { class: sinif = "", genislik = 320 } = Astro.props;
+
+const r = 9;
+const ic = r * 0.414 * Math.SQRT2;
+const yildiz = Array.from({ length: 16 }, (_, i) => {
+  const aci = (Math.PI / 8) * i - Math.PI / 2;
+  const yc = i % 2 === 0 ? r : ic;
+  return `${(100 + yc * Math.cos(aci)).toFixed(2)},${(12 + yc * Math.sin(aci)).toFixed(2)}`;
+}).join(" ");
+---
+
+<svg
+  viewBox="0 0 200 24"
+  width={genislik}
+  height={genislik * 0.12}
+  class={sinif}
+  aria-hidden="true"
+  focusable="false"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1"
+  stroke-linecap="round"
+>
+  <path d="M4 12 H70" opacity="0.5" />
+  <path d="M70 12 C 76 12, 78 5, 84 6 C 88 7, 88 12, 84 12" opacity="0.9" />
+  <path d="M130 12 H196" opacity="0.5" />
+  <path d="M130 12 C 124 12, 122 5, 116 6 C 112 7, 112 12, 116 12" opacity="0.9" />
+  <polygon points={yildiz} fill="currentColor" opacity="0.85" stroke="none" />
+</svg>

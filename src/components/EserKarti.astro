@@ -1,0 +1,93 @@
+---
+import Kapak from "./Kapak.astro";
+import TezhipKose from "./motifs/TezhipKose.astro";
+import { ROL_ADLARI, KATEGORI_ADLARI, ilkYayinevi, sonYil, type Eser } from "../lib/books";
+
+interface Props {
+  eser: Eser;
+  genislik?: number;
+  oncelik?: boolean;
+}
+const { eser, genislik = 190, oncelik = false } = Astro.props;
+const yil = sonYil(eser);
+---
+
+<a href={`/eserler/${eser.slug}/`} class="kart-bag group" aria-label={eser.title}>
+  <div class="kapak-kutu">
+    <Kapak eser={eser} genislik={genislik} oncelik={oncelik} />
+    <span class="kose sol-ust"><TezhipKose boyut={24} /></span>
+    <span class="kose sag-ust"><TezhipKose boyut={24} /></span>
+    <span class="kose sol-alt"><TezhipKose boyut={24} /></span>
+    <span class="kose sag-alt"><TezhipKose boyut={24} /></span>
+  </div>
+  <div class="bilgi">
+    <p class="etiket rol">{ROL_ADLARI[eser.role]} · {KATEGORI_ADLARI[eser.category]}</p>
+    <h3 class="ad">{eser.title}</h3>
+    {eser.originalAuthor ? <p class="yazar">{eser.originalAuthor.replace(/\s*\(.*?\)\s*/g, "")}</p> : null}
+    <p class="kunye">{ilkYayinevi(eser)}{yil ? ` · ${yil}` : ""}</p>
+  </div>
+</a>
+
+<style>
+  .kart-bag {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+  .kapak-kutu {
+    position: relative;
+    align-self: start;
+    line-height: 0;
+    transition:
+      transform 0.35s cubic-bezier(0.2, 0.8, 0.3, 1),
+      box-shadow 0.35s ease;
+    box-shadow:
+      0 1px 2px color-mix(in srgb, var(--murekkep) 12%, transparent),
+      0 8px 20px -12px color-mix(in srgb, var(--murekkep) 40%, transparent);
+  }
+  .kart-bag:hover .kapak-kutu,
+  .kart-bag:focus-visible .kapak-kutu {
+    transform: translateY(-5px) rotate(-0.4deg);
+    box-shadow:
+      0 2px 4px color-mix(in srgb, var(--murekkep) 14%, transparent),
+      0 18px 32px -16px color-mix(in srgb, var(--murekkep) 55%, transparent);
+  }
+  /* Tezhip köşebentleri yalnızca hover'da beliriyor — durağan hâlde
+     kapağın kendi tipografisini bastırmasınlar. */
+  .kose {
+    position: absolute;
+    color: var(--varak);
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    line-height: 0;
+  }
+  .kart-bag:hover .kose,
+  .kart-bag:focus-visible .kose {
+    opacity: 0.95;
+  }
+  .sol-ust { top: 4px; left: 4px; }
+  .sag-ust { top: 4px; right: 4px; transform: scaleX(-1); }
+  .sol-alt { bottom: 4px; left: 4px; transform: scaleY(-1); }
+  .sag-alt { bottom: 4px; right: 4px; transform: scale(-1); }
+
+  .bilgi { max-width: 24ch; }
+  .rol { display: block; margin-bottom: 0.25rem; font-size: 0.68rem; }
+  .ad {
+    font-size: 1.08rem;
+    line-height: 1.25;
+    margin-bottom: 0.15rem;
+  }
+  .kart-bag:hover .ad { color: var(--bakir); }
+  .yazar {
+    margin: 0;
+    font-size: 0.92rem;
+    font-style: italic;
+    color: var(--sessiz);
+  }
+  .kunye {
+    margin: 0.15rem 0 0;
+    font-family: var(--font-arayuz);
+    font-size: 0.74rem;
+    color: var(--sessiz);
+  }
+</style>

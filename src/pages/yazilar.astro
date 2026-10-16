@@ -1,0 +1,154 @@
+---
+import Taban from "../layouts/Taban.astro";
+import Yildiz8 from "../components/motifs/Yildiz8.astro";
+import kitaplar from "../../data/books.json";
+
+/**
+ * Dergi yazıları.
+ *
+ * ŞU AN BOŞ ve bu bilerek böyle. Muharrem Tan imzalı yazılar çevrimiçi
+ * kaynaklarda künyesiyle bulunamadı; liste kendisinden alınacak. Buraya
+ * örnek/temsilî yazı KONMUYOR — bir yazarın sitesinde var olmayan yazı,
+ * düzeltilmesi en zor hatadır.
+ *
+ * `data/books.json` → `yazilar.items` dolduğunda liste kendiliğinden
+ * görünüyor; kod değişikliği gerekmiyor.
+ */
+const bolum = kitaplar.yazilar as {
+  _not?: string;
+  items?: Array<{
+    slug: string;
+    title: string;
+    magazine: string;
+    issue?: string;
+    date?: string;
+    type?: string;
+    url?: string;
+    pdf?: string;
+    excerpt?: string;
+  }>;
+};
+const yazilar = bolum.items ?? [];
+
+const TUR_ADLARI: Record<string, string> = {
+  makale: "Makale",
+  deneme: "Deneme",
+  "ceviri-makale": "Çeviri makale",
+  roportaj: "Röportaj",
+  "kitap-tanitimi": "Kitap tanıtımı",
+};
+
+/** Dergi adına göre grupla — bir derginin yazıları bir arada okunsun. */
+const dergiler = new Map<string, typeof yazilar>();
+for (const y of yazilar) {
+  if (!dergiler.has(y.magazine)) dergiler.set(y.magazine, []);
+  dergiler.get(y.magazine)!.push(y);
+}
+---
+
+<Taban
+  baslik="Yazılar"
+  aciklama="Muharrem Tan'ın dergi yazıları, makaleleri ve söyleşileri."
+>
+  <section class="kapsa bas">
+    <p class="etiket">Dergi ve süreli yayın</p>
+    <h1>Yazılar</h1>
+    <p class="ozet">
+      Kitapların dışında kalan yazılar: makaleler, denemeler, söyleşiler ve kitap tanıtımları.
+    </p>
+  </section>
+
+  {
+    yazilar.length === 0 ? (
+      <section class="kapsa bos-bolum">
+        <div class="bos">
+          <Yildiz8 boyut={34} kalinlik={1.1} class="yildiz" />
+          <h2>Bu bölüm derleniyor</h2>
+          <p>
+            Dergi yazıları ve makaleler bir araya getiriliyor. Künyesi doğrulanmayan hiçbir
+            yazı buraya konmuyor; liste hazır olduğunda yayına alınacak.
+          </p>
+          <p class="ince">
+            Muharrem Tan'ın bir yazısına kaynağıyla birlikte ulaştıysan
+            <a href="/iletisim/" class="bag">iletişim sayfasından</a> paylaşabilirsin.
+          </p>
+        </div>
+      </section>
+    ) : (
+      <section class="kapsa liste">
+        {[...dergiler.entries()].map(([dergi, grup]) => (
+          <article class="dergi">
+            <h2>{dergi}</h2>
+            <ul>
+              {grup.map((y) => (
+                <li class="yazi">
+                  <div>
+                    <h3>{y.title}</h3>
+                    <p class="kunye">
+                      {y.issue ? `${y.issue}` : ""}
+                      {y.date ? ` · ${y.date}` : ""}
+                      {y.type ? ` · ${TUR_ADLARI[y.type] ?? y.type}` : ""}
+                    </p>
+                    {y.excerpt ? <p class="ozet-kisa">{y.excerpt}</p> : null}
+                  </div>
+                  <div class="baglar">
+                    {y.pdf ? <a href={y.pdf} rel="noopener" class="bag">PDF</a> : null}
+                    {y.url ? <a href={y.url} rel="noopener" class="bag">Kaynak</a> : null}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </article>
+        ))}
+      </section>
+    )
+  }
+</Taban>
+
+<style>
+  .bas { padding-block: clamp(2.5rem, 6vw, 4rem) 1rem; }
+  .bas h1 { font-size: clamp(2.3rem, 6vw, 3.5rem); margin: 0.35rem 0 0.7rem; }
+  .ozet { max-width: 52ch; color: var(--sessiz); margin: 0; }
+
+  .bos-bolum { padding-block: 2rem 4rem; }
+  .bos {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+    text-align: center;
+    padding: clamp(2.5rem, 7vw, 4.5rem) 1.5rem;
+    background: var(--kagit-2);
+    border: 1px dashed var(--kenar);
+  }
+  .yildiz { color: var(--varak); }
+  .bos h2 { font-size: 1.6rem; }
+  .bos p { margin: 0; max-width: 48ch; color: var(--sessiz); }
+  .ince { font-size: 0.9rem; }
+
+  .liste { padding-block: 2rem 3rem; display: flex; flex-direction: column; gap: 2.5rem; }
+  .dergi h2 {
+    font-size: 1.4rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--kenar);
+    margin-bottom: 1rem;
+  }
+  .dergi ul { list-style: none; margin: 0; padding: 0; }
+  .yazi {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: space-between;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--kenar) 60%, transparent);
+  }
+  .yazi h3 { font-size: 1.15rem; }
+  .kunye {
+    margin: 0.2rem 0 0;
+    font-family: var(--font-arayuz);
+    font-size: 0.75rem;
+    color: var(--sessiz);
+  }
+  .ozet-kisa { margin: 0.4rem 0 0; max-width: 60ch; font-size: 0.95rem; }
+  .baglar { display: flex; gap: 1rem; font-family: var(--font-arayuz); font-size: 0.82rem; }
+</style>

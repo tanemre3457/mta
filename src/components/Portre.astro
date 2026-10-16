@@ -1,0 +1,67 @@
+---
+import Girih12 from "./motifs/Girih12.astro";
+import { portreYolu } from "../lib/varliklar";
+
+/**
+ * Portre.
+ *
+ * Fotoğraf `public/portre/muharrem-tan.jpg` olarak konulduğunda görünüyor.
+ * GELMEDEN ÖNCE boş bir avatar kutusu ya da stok görsel KONMUYOR: bir
+ * mütercimin sitesinde temsilî bir yüz, olmayan bilgiyi var gibi gösterir.
+ * Yerine girih rozeti duruyor — süs olduğu belli, eksiklik iddia etmiyor.
+ */
+interface Props {
+  boyut?: number;
+  class?: string;
+}
+const { boyut = 300, class: sinif = "" } = Astro.props;
+const yol = portreYolu();
+---
+
+<figure class={`portre ${sinif}`} style={`--b:${boyut}px`}>
+  {
+    yol ? (
+      <img src={yol} alt="Muharrem Tan" width={boyut} height={boyut} loading="lazy" decoding="async" class="fotograf" />
+    ) : (
+      <div class="rozet" aria-hidden="true">
+        <Girih12 boyut={Math.round(boyut * 0.62)} kalinlik={0.9} />
+      </div>
+    )
+  }
+  <figcaption class="etiket">Muharrem Tan</figcaption>
+</figure>
+
+<style>
+  .portre {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    align-items: center;
+    width: var(--b);
+    max-width: 100%;
+  }
+  .portre img,
+  .rozet {
+    width: var(--b);
+    /* Elde küçük bir fotoğraf varsa büyütüp bulanıklaştırmak yerine
+       kendi boyutunda bırakılıyor. */
+    max-width: min(100%, var(--b));
+    max-width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border: 1px solid var(--kenar);
+    background: var(--kagit-2);
+  }
+  .rozet {
+    display: grid;
+    place-items: center;
+    color: var(--varak);
+  }
+  figcaption { letter-spacing: 0.12em; }
+  /* Fildişi zeminle uyumlu, ölçülü bir sıcaklık; sert bir fotoğraf
+     kesiti sayfanın kâğıt hissini bozuyor. */
+  .fotograf {
+    filter: saturate(0.9) contrast(1.02);
+  }
+</style>

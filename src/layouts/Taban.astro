@@ -1,0 +1,82 @@
+---
+import "../styles/global.css";
+import Baslik from "../components/Baslik.astro";
+import Altbilgi from "../components/Altbilgi.astro";
+import Loader from "../components/Loader.astro";
+
+interface Props {
+  baslik: string;
+  aciklama: string;
+  /** Sayfaya özel JSON-LD (schema.org). */
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  ogTur?: string;
+}
+const { baslik, aciklama, jsonLd, ogTur = "website" } = Astro.props;
+const kanonik = new URL(Astro.url.pathname, Astro.site ?? "https://muharremtan.com");
+const tamBaslik = baslik === "Muharrem Tan" ? "Muharrem Tan — Mütercim ve Yazar" : `${baslik} · Muharrem Tan`;
+---
+
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{tamBaslik}</title>
+    <meta name="description" content={aciklama} />
+    <link rel="canonical" href={kanonik.href} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="generator" content={Astro.generator} />
+
+    <meta property="og:type" content={ogTur} />
+    <meta property="og:site_name" content="Muharrem Tan" />
+    <meta property="og:title" content={tamBaslik} />
+    <meta property="og:description" content={aciklama} />
+    <meta property="og:url" content={kanonik.href} />
+    <meta property="og:locale" content="tr_TR" />
+    <meta name="twitter:card" content="summary" />
+
+    <!-- Tema, boyamadan ÖNCE uygulanıyor: aksi hâlde koyu tema seçmiş
+         kullanıcı her sayfada bir kare açık zemin görüyor. -->
+    <script is:inline>
+      (function () {
+        try {
+          var t = localStorage.getItem("mt-tema");
+          if (t) document.documentElement.setAttribute("data-theme", t);
+        } catch (e) {}
+      })();
+    </script>
+
+    {jsonLd ? <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} /> : null}
+  </head>
+  <body>
+    <Loader />
+    <a href="#icerik" class="atla">İçeriğe geç</a>
+    <Baslik />
+    <main id="icerik">
+      <slot />
+    </main>
+    <Altbilgi />
+
+    <style>
+      .atla {
+        position: absolute;
+        left: -9999px;
+        top: 0;
+        z-index: 200;
+        background: var(--murekkep);
+        color: var(--kagit);
+        padding: 0.6rem 1rem;
+        font-family: var(--font-arayuz);
+        font-size: 0.85rem;
+      }
+      .atla:focus {
+        left: 0.5rem;
+        top: 0.5rem;
+      }
+      /* Perde açıkken arka plan kaymasın. */
+      :global(html.perde-acik) {
+        overflow: hidden;
+      }
+    </style>
+  </body>
+</html>

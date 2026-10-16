@@ -1,0 +1,60 @@
+---
+/**
+ * On ikili girih rozeti — Hakkında sayfası başlığı ve kronoloji düğümleri.
+ *
+ * Üç katman: dış on iki kollu yıldız, iç altıgen ağ, merkez küçük yıldız.
+ * Hepsi açı hesabından; elle çizilmiş yol yok.
+ */
+interface Props {
+  boyut?: number;
+  class?: string;
+  kalinlik?: number;
+}
+const { boyut = 120, class: sinif = "", kalinlik = 1 } = Astro.props;
+
+const m = 60;
+const kose = (yaricap: number, aci: number) =>
+  `${(m + yaricap * Math.cos(aci)).toFixed(2)},${(m + yaricap * Math.sin(aci)).toFixed(2)}`;
+
+/** 12 kollu yıldız: 24 nokta, dış ve iç yarıçap dönüşümlü. */
+const disYildiz = Array.from({ length: 24 }, (_, i) =>
+  kose(i % 2 === 0 ? 55 : 38, (Math.PI / 12) * i - Math.PI / 2),
+).join(" ");
+
+/** İç halka: altı kollu ikinci yıldız, ters fazda. */
+const icYildiz = Array.from({ length: 12 }, (_, i) =>
+  kose(i % 2 === 0 ? 28 : 16, (Math.PI / 6) * i),
+).join(" ");
+
+/** Dış on iki köşeli çokgen — rozetin çerçevesi. */
+const cerceve = Array.from({ length: 12 }, (_, i) =>
+  kose(55, (Math.PI / 6) * i - Math.PI / 2),
+).join(" ");
+
+/** Kollardan merkeze uzanan ince ışınlar. */
+const isinlar = Array.from({ length: 12 }, (_, i) => {
+  const aci = (Math.PI / 6) * i - Math.PI / 2;
+  return { x1: m + 16 * Math.cos(aci), y1: m + 16 * Math.sin(aci), x2: m + 38 * Math.cos(aci), y2: m + 38 * Math.sin(aci) };
+});
+---
+
+<svg
+  viewBox="0 0 120 120"
+  width={boyut}
+  height={boyut}
+  class={sinif}
+  aria-hidden="true"
+  focusable="false"
+  fill="none"
+  stroke="currentColor"
+  stroke-width={kalinlik}
+  stroke-linejoin="round"
+>
+  <polygon points={cerceve} opacity="0.35" />
+  <polygon points={disYildiz} />
+  {isinlar.map((i) => (
+    <line x1={i.x1.toFixed(2)} y1={i.y1.toFixed(2)} x2={i.x2.toFixed(2)} y2={i.y2.toFixed(2)} opacity="0.4" />
+  ))}
+  <polygon points={icYildiz} opacity="0.8" />
+  <circle cx="60" cy="60" r="6" opacity="0.5" />
+</svg>

@@ -1,0 +1,136 @@
+---
+import Taban from "../layouts/Taban.astro";
+import Girih12 from "../components/motifs/Girih12.astro";
+import kitaplar from "../../data/books.json";
+
+/** Akademik kayıtlar da katalog dosyasından; ayrı bir liste tutulmuyor. */
+const akademik = kitaplar.akademik as Array<{
+  type: string;
+  title: string;
+  year: number;
+  institution: string;
+  advisor?: string;
+  pages?: string;
+  url?: string;
+  pdf?: string;
+  sources?: string[];
+}>;
+
+const TUR_ADLARI: Record<string, string> = {
+  "yuksek-lisans-tezi": "Yüksek lisans tezi",
+  "doktora-tezi": "Doktora tezi",
+  makale: "Makale",
+};
+
+const jsonLd = akademik.map((a) => ({
+  "@context": "https://schema.org",
+  "@type": "Thesis",
+  name: a.title,
+  author: { "@type": "Person", name: "Muharrem Tan" },
+  datePublished: String(a.year),
+  inSupportOf: "Yüksek Lisans",
+  publisher: { "@type": "CollegeOrUniversity", name: a.institution },
+  ...(a.url ? { url: a.url } : {}),
+  inLanguage: "tr",
+}));
+---
+
+<Taban
+  baslik="Akademik"
+  aciklama="Muharrem Tan'ın akademik çalışmaları: Hindistan'ın Bölünmesi ve Hint Müslümanları (Marmara Üniversitesi, 1999)."
+  jsonLd={jsonLd}
+>
+  <section class="kapsa bas">
+    <p class="etiket">Akademik</p>
+    <h1>Akademik çalışmalar</h1>
+    <p class="ozet">
+      Hindistan'da geçirilen dönemin akademik bir çalışmaya dönüştüğü tez ve ilgili kayıtlar.
+    </p>
+  </section>
+
+  <section class="kapsa liste">
+    {akademik.map((a) => (
+      <article class="tez">
+        <Girih12 boyut={84} kalinlik={0.8} class="rozet" />
+        <div class="govde">
+          <p class="etiket">{TUR_ADLARI[a.type] ?? a.type} · {a.year}</p>
+          <h2>{a.title}</h2>
+          <dl class="kunye">
+            <div><dt>Kurum</dt><dd>{a.institution}</dd></div>
+            {a.advisor ? <div><dt>Danışman</dt><dd>{a.advisor}</dd></div> : null}
+            {a.pages ? <div><dt>Hacim</dt><dd>{a.pages}</dd></div> : null}
+          </dl>
+          <div class="baglar">
+            {a.url ? <a href={a.url} rel="noopener" class="dugme">Açık arşiv kaydı</a> : null}
+            {a.pdf ? <a href={a.pdf} rel="noopener" class="dugme ikincil">PDF</a> : null}
+          </div>
+        </div>
+      </article>
+    ))}
+  </section>
+
+  <section class="kapsa not-bolum">
+    <p class="not">
+      Dergi yazıları ve makaleler ayrı bir sayfada toplanıyor:
+      <a href="/yazilar/" class="bag">Yazılar</a>.
+    </p>
+  </section>
+</Taban>
+
+<style>
+  .bas { padding-block: clamp(2.5rem, 6vw, 4rem) 1rem; }
+  .bas h1 { font-size: clamp(2.3rem, 6vw, 3.5rem); margin: 0.35rem 0 0.7rem; }
+  .ozet { max-width: 52ch; color: var(--sessiz); margin: 0; }
+  .liste { padding-block: 2rem 1rem; }
+  .tez {
+    display: grid;
+    gap: 1.75rem;
+    align-items: start;
+    padding: 2rem;
+    background: var(--kagit-2);
+    border: 1px solid var(--kenar);
+  }
+  .rozet { color: var(--varak); justify-self: center; }
+  .tez h2 {
+    font-size: clamp(1.5rem, 3.5vw, 2.1rem);
+    margin: 0.3rem 0 1.2rem;
+    max-width: 30ch;
+  }
+  .kunye { margin: 0 0 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
+  .kunye div { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .kunye dt {
+    min-width: 7rem;
+    font-family: var(--font-arayuz);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--sessiz);
+    padding-top: 0.2rem;
+  }
+  .kunye dd { margin: 0; max-width: 46ch; }
+  .baglar { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+  .dugme {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.6rem;
+    padding-inline: 1.2rem;
+    background: var(--murekkep);
+    color: var(--kagit);
+    font-family: var(--font-arayuz);
+    font-size: 0.84rem;
+    transition: background 0.2s ease;
+  }
+  .dugme:hover { background: var(--bakir); }
+  .ikincil {
+    background: transparent;
+    color: var(--murekkep);
+    border: 1px solid var(--murekkep);
+  }
+  .ikincil:hover { background: transparent; border-color: var(--bakir); color: var(--bakir); }
+  .not-bolum { padding-block: 1rem 3rem; }
+  .not { color: var(--sessiz); margin: 0; }
+  @media (min-width: 48rem) {
+    .tez { grid-template-columns: auto 1fr; gap: 2.5rem; padding: 2.5rem; }
+    .rozet { justify-self: start; }
+  }
+</style>

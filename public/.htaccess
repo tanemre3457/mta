@@ -1,0 +1,82 @@
+# ---------------------------------------------------------------------------
+# Natro (Apache / LiteSpeed) ayarları — muharremtan.com
+#
+# Site tamamen statik: her sayfa önceden üretilmiş HTML. Sunucuda PHP, Node
+# ya da veritabanı çalışmıyor; bu dosya yalnızca sunucunun dosyaları nasıl
+# vereceğini söylüyor.
+# ---------------------------------------------------------------------------
+
+# Özel 404 sayfası. Astro'nun ürettiği 404.html kullanılıyor; sunucunun
+# kendi "Not Found" ekranı siteyi terk edilmiş gösteriyor.
+ErrorDocument 404 /404.html
+
+# Dizin listelemesi kapalı: /covers/ adresine giren biri klasördeki bütün
+# dosyaların listesini görmemeli.
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # ---- HTTPS yönlendirmesi ------------------------------------------------
+  # SSL sertifikası TANIMLANDIKTAN SONRA aşağıdaki iki satırın başındaki
+  # # işaretini kaldır. Sertifika yokken açarsan site hiç açılmaz.
+  # RewriteCond %{HTTPS} !=on
+  # RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+
+  # ---- www → köke yönlendirme --------------------------------------------
+  # Aynı içerik iki adreste durursa Google ikisini ayrı site sayıyor ve
+  # sıralama bölünüyor. Tek adres: muharremtan.com
+  RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+  RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+
+  # ---- Sondaki eğik çizgi -------------------------------------------------
+  # Site /eserler/ biçiminde üretiliyor. /eserler adresi de aynı sayfaya
+  # gitsin ki elle yazılan ya da eski bağlantılar kırılmasın.
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME}/index.html -f
+  RewriteRule ^(.+[^/])$ /$1/ [R=301,L]
+</IfModule>
+
+# ---- Sıkıştırma -------------------------------------------------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml
+  AddOutputFilterByType DEFLATE application/javascript application/json
+  AddOutputFilterByType DEFLATE image/svg+xml application/xml
+</IfModule>
+
+# ---- Önbellek ---------------------------------------------------------------
+# Astro, CSS/JS dosyalarının adına içerik damgası basıyor; dosya değişince
+# adı da değişiyor. Bu yüzden onlar bir yıl önbelleklenebilir.
+# HTML önbelleklenmiyor: içerik güncellenince ziyaretçi eskisini görmesin.
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/html "access plus 0 seconds"
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 1 year"
+  ExpiresByType image/webp "access plus 6 months"
+  ExpiresByType image/avif "access plus 6 months"
+  ExpiresByType image/jpeg "access plus 6 months"
+  ExpiresByType image/png "access plus 6 months"
+  ExpiresByType image/svg+xml "access plus 6 months"
+</IfModule>
+
+<IfModule mod_headers.c>
+  <FilesMatch "\.(html)$">
+    Header set Cache-Control "public, max-age=0, must-revalidate"
+  </FilesMatch>
+  <FilesMatch "\.(css|js|woff2|avif|webp)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  # Siteyi başka bir sayfanın iframe'ine gömülmekten korur.
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# ---- Yazı tipleri -----------------------------------------------------------
+<IfModule mod_mime.c>
+  AddType font/woff2 .woff2
+  AddType image/avif .avif
+  AddType image/webp .webp
+</IfModule>

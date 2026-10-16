@@ -1,0 +1,31 @@
+---
+/**
+ * Tezhip köşebenti — kart hover'ında köşelerde beliren ince altın süs.
+ *
+ * Dört köşeye aynı parça döndürülerek konuyor; her köşe için ayrı yol
+ * çizmek dört kat bakım demekti.
+ */
+interface Props {
+  class?: string;
+  boyut?: number;
+}
+const { class: sinif = "", boyut = 28 } = Astro.props;
+---
+
+<svg
+  viewBox="0 0 40 40"
+  width={boyut}
+  height={boyut}
+  class={sinif}
+  aria-hidden="true"
+  focusable="false"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1"
+  stroke-linecap="round"
+>
+  <path d="M2 14 V 6 A4 4 0 0 1 6 2 H14" />
+  <path d="M6 18 V 10 A4 4 0 0 1 10 6 H18" opacity="0.6" />
+  <path d="M10 10 C 14 10, 16 12, 16 16" opacity="0.5" />
+  <circle cx="10" cy="10" r="1.4" fill="currentColor" stroke="none" opacity="0.8" />
+</svg>

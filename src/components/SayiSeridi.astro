@@ -1,0 +1,85 @@
+---
+import type { Istatistik } from "../lib/books";
+
+interface Props {
+  ist: Istatistik;
+}
+const { ist } = Astro.props;
+
+/* Sayılar katalogdan geliyor — hiçbiri elle yazılmadı. */
+const kutular = [
+  { sayi: ist.eser, etiket: "yayımlanmış eser" },
+  { sayi: ist.yazar, etiket: "çevrilen yazar" },
+  { sayi: ist.yayinevi, etiket: "yayınevi" },
+  { sayi: ist.yil, etiket: "yıllık emek", ek: `${ist.ilkYil}–${ist.sonYil}` },
+];
+---
+
+<section class="serit" aria-label="Rakamlarla">
+  <div class="kapsa ic">
+    {kutular.map((k) => (
+      <div class="kutu">
+        <span class="sayi" data-hedef={k.sayi}>{k.sayi}</span>
+        <span class="etiket">{k.etiket}</span>
+        {k.ek ? <span class="ek">{k.ek}</span> : null}
+      </div>
+    ))}
+  </div>
+</section>
+
+<script is:inline>
+  /* Sayaç animasyonu. Hareket azaltılmışsa sayı doğrudan yazılı duruyor;
+     görünür alana girmeden de saymıyor, yoksa kullanıcı kaçırıyor. */
+  (function () {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!("IntersectionObserver" in window)) return;
+    var gozlemci = new IntersectionObserver(function (girisler) {
+      girisler.forEach(function (g) {
+        if (!g.isIntersecting) return;
+        gozlemci.unobserve(g.target);
+        var hedef = Number(g.target.getAttribute("data-hedef")) || 0;
+        var sure = 900;
+        var bas = performance.now();
+        function adim(simdi) {
+          var o = Math.min(1, (simdi - bas) / sure);
+          var yumusak = 1 - Math.pow(1 - o, 3);
+          g.target.textContent = String(Math.round(hedef * yumusak));
+          if (o < 1) requestAnimationFrame(adim);
+        }
+        requestAnimationFrame(adim);
+      });
+    }, { threshold: 0.4 });
+    document.querySelectorAll(".sayi").forEach(function (e) { gozlemci.observe(e); });
+  })();
+</script>
+
+<style>
+  .serit {
+    border-block: 1px solid var(--kenar);
+    background: var(--kagit-2);
+  }
+  .ic {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.75rem 1rem;
+    padding-block: 2.25rem;
+    text-align: center;
+  }
+  .kutu { display: flex; flex-direction: column; gap: 0.15rem; }
+  .sayi {
+    font-family: var(--font-baslik);
+    font-size: clamp(2.2rem, 5vw, 3.1rem);
+    font-weight: 600;
+    color: var(--bakir);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .ek {
+    font-family: var(--font-arayuz);
+    font-size: 0.72rem;
+    color: var(--sessiz);
+  }
+  @media (min-width: 48rem) {
+    .ic { grid-template-columns: repeat(4, 1fr); }
+  }
+</style>

@@ -1,0 +1,188 @@
+---
+import Yildiz8 from "./motifs/Yildiz8.astro";
+
+const yol = Astro.url.pathname;
+const menu = [
+  { ad: "Hakkında", yol: "/hakkinda/" },
+  { ad: "Eserler", yol: "/eserler/" },
+  { ad: "Yazarlar", yol: "/yazarlar/" },
+  { ad: "Yazılar", yol: "/yazilar/" },
+  { ad: "Akademik", yol: "/akademik/" },
+  { ad: "İletişim", yol: "/iletisim/" },
+];
+const etkinMi = (hedef: string) =>
+  hedef === "/" ? yol === "/" : yol.startsWith(hedef.replace(/\/$/, ""));
+---
+
+<header class="ust">
+  <div class="kapsa ic">
+    <a href="/" class="logo" aria-label="Muharrem Tan — ana sayfa">
+      <Yildiz8 boyut={30} kalinlik={1.3} />
+      <span class="ad">
+        <strong>Muharrem Tan</strong>
+        <span class="arapca" lang="ar">ترجمان</span>
+      </span>
+    </a>
+
+    <nav class="menu" aria-label="Ana menü">
+      {menu.map((m) => (
+        <a href={m.yol} class:list={["oge", { etkin: etkinMi(m.yol) }]} aria-current={etkinMi(m.yol) ? "page" : undefined}>
+          {m.ad}
+        </a>
+      ))}
+    </nav>
+
+    <button id="tema-dugme" class="tema" type="button" aria-label="Koyu temaya geç">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path class="gunes" d="M12 4V2M12 22v-2M4 12H2m20 0h-2M6 6L4.5 4.5M19.5 19.5 18 18M6 18l-1.5 1.5M19.5 4.5 18 6" stroke-linecap="round" />
+        <circle class="gunes" cx="12" cy="12" r="4" />
+        <path class="ay" d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z" stroke-linejoin="round" />
+      </svg>
+    </button>
+
+    <button id="menu-dugme" class="menu-dugme" type="button" aria-expanded="false" aria-controls="gezinme-kucuk" aria-label="Menüyü aç">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+
+  <nav id="gezinme-kucuk" class="kucuk" aria-label="Ana menü (mobil)" hidden>
+    {menu.map((m) => <a href={m.yol} class:list={["oge", { etkin: etkinMi(m.yol) }]}>{m.ad}</a>)}
+  </nav>
+</header>
+
+<script is:inline>
+  (function () {
+    var dugme = document.getElementById("menu-dugme");
+    var gezinme = document.getElementById("gezinme-kucuk");
+    if (dugme && gezinme) {
+      dugme.addEventListener("click", function () {
+        var acik = dugme.getAttribute("aria-expanded") === "true";
+        dugme.setAttribute("aria-expanded", String(!acik));
+        dugme.setAttribute("aria-label", acik ? "Menüyü aç" : "Menüyü kapat");
+        gezinme.hidden = acik;
+      });
+    }
+
+    var tema = document.getElementById("tema-dugme");
+    if (!tema) return;
+    function uygula(ad) {
+      document.documentElement.setAttribute("data-theme", ad);
+      tema.setAttribute("aria-label", ad === "dark" ? "Açık temaya geç" : "Koyu temaya geç");
+      try {
+        localStorage.setItem("mt-tema", ad);
+      } catch (e) {}
+    }
+    tema.addEventListener("click", function () {
+      var simdiki =
+        document.documentElement.getAttribute("data-theme") ||
+        (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      uygula(simdiki === "dark" ? "light" : "dark");
+    });
+  })();
+</script>
+
+<style>
+  .ust {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: color-mix(in srgb, var(--kagit) 88%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--kenar);
+  }
+  .ic {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    min-height: 4.1rem;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--bakir);
+    margin-inline-end: auto;
+  }
+  .logo .ad {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.05;
+  }
+  .logo strong {
+    font-family: var(--font-baslik);
+    font-size: 1.32rem;
+    font-weight: 600;
+    color: var(--murekkep);
+    letter-spacing: 0.005em;
+  }
+  .arapca {
+    font-size: 0.82rem;
+    color: var(--sessiz);
+    opacity: 0.9;
+  }
+  .menu {
+    display: none;
+    gap: 1.35rem;
+  }
+  .oge {
+    font-family: var(--font-arayuz);
+    font-size: 0.86rem;
+    letter-spacing: 0.015em;
+    color: var(--is);
+    padding-block: 0.3rem;
+    border-bottom: 1.5px solid transparent;
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+  .oge:hover { color: var(--bakir); }
+  .oge.etkin {
+    color: var(--murekkep);
+    border-bottom-color: var(--bakir);
+  }
+  .tema,
+  .menu-dugme {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid var(--kenar);
+    border-radius: 2px;
+    background: transparent;
+    color: var(--is);
+    cursor: pointer;
+  }
+  .tema:hover,
+  .menu-dugme:hover { border-color: var(--bakir); color: var(--bakir); }
+  /* Güneş açık temada, ay koyu temada. İki ikonu da çizip birini gizlemek,
+     tema değişince ikonun geç güncellenmesini engelliyor. */
+  .ay { display: none; }
+  :root[data-theme="dark"] .ay { display: block; }
+  :root[data-theme="dark"] .gunes { display: none; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .ay { display: block; }
+    :root:not([data-theme="light"]) .gunes { display: none; }
+  }
+
+  .menu-dugme span {
+    display: block;
+    width: 15px;
+    height: 1.5px;
+    background: currentColor;
+    margin: 2px 0;
+  }
+  .kucuk {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--kenar);
+    padding: 0.5rem clamp(1rem, 4vw, 2.5rem) 1rem;
+    background: var(--kagit);
+  }
+  .kucuk .oge {
+    padding-block: 0.6rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--kenar) 55%, transparent);
+  }
+  @media (min-width: 60rem) {
+    .menu { display: flex; }
+    .menu-dugme { display: none; }
+    .kucuk { display: none !important; }
+  }
+</style>

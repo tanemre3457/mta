@@ -1,0 +1,305 @@
+---
+import type { GetStaticPaths } from "astro";
+import Taban from "../../layouts/Taban.astro";
+import Kapak from "../../components/Kapak.astro";
+import EserKarti from "../../components/EserKarti.astro";
+import TezhipKose from "../../components/motifs/TezhipKose.astro";
+import RumiAyrac from "../../components/motifs/RumiAyrac.astro";
+import {
+  KATEGORI_ADLARI,
+  HEDEF_ADLARI,
+  ROL_ADLARI,
+  ilkYayinevi,
+  ilkYil,
+  sonYil,
+  tumEserler,
+  yazarKimligi,
+  type Eser,
+} from "../../lib/books";
+
+export const getStaticPaths = (async () => {
+  const eserler = await tumEserler();
+  return eserler.map((eser) => ({
+    params: { slug: eser.slug },
+    props: { eser, hepsi: eserler },
+  }));
+}) satisfies GetStaticPaths;
+
+interface Props {
+  eser: Eser;
+  hepsi: Eser[];
+}
+const { eser, hepsi } = Astro.props;
+
+const yil = ilkYil(eser);
+const baskilar = [...eser.editions].sort((a, b) => (a.year ?? 9999) - (b.year ?? 9999));
+
+/* Öneriler: önce aynı yazar, sonra aynı dizi, sonra aynı konu. */
+const ayniYazar = eser.originalAuthor
+  ? hepsi.filter((e) => e.slug !== eser.slug && e.originalAuthor === eser.originalAuthor)
+  : [];
+const ayniDizi = eser.series
+  ? hepsi.filter((e) => e.slug !== eser.slug && e.series === eser.series)
+  : [];
+const ayniKonu = hepsi.filter(
+  (e) =>
+    e.slug !== eser.slug &&
+    e.category === eser.category &&
+    !ayniYazar.includes(e) &&
+    !ayniDizi.includes(e),
+);
+const oneriler = [...ayniYazar, ...ayniDizi, ...ayniKonu].slice(0, 4);
+
+/** ISBN'i olan baskı için kitapçı ARAMASI — doğrudan ürün linki değil:
+    ürün sayfası taşındığında kırılmıyor, ayrıca bir satıcıyı kayırmıyor. */
+const aramaLinki = (isbn: string) =>
+  `https://www.kitapyurdu.com/index.php?route=product/search&filter_name=${encodeURIComponent(isbn)}`;
+
+const ceviriMi = eser.role === "ceviri" || eser.role === "ortak-ceviri";
+const ilkIsbn = baskilar.find((b) => b.isbn)?.isbn;
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Book",
+  name: eser.title,
+  ...(eser.subtitle ? { alternateName: eser.subtitle } : {}),
+  inLanguage: "tr",
+  ...(ceviriMi
+    ? {
+        translator: { "@type": "Person", name: "Muharrem Tan" },
+        ...(eser.originalAuthor
+          ? { author: { "@type": "Person", name: eser.originalAuthor.replace(/\s*\(.*?\)\s*/g, "") } }
+          : {}),
+      }
+    : { author: { "@type": "Person", name: "Muharrem Tan" } }),
+  publisher: { "@type": "Organization", name: ilkYayinevi(eser) },
+  ...(yil ? { datePublished: String(yil) } : {}),
+  ...(ilkIsbn ? { isbn: ilkIsbn } : {}),
+  ...(eser.summary ? { description: eser.summary } : {}),
+};
+---
+
+<Taban
+  baslik={eser.title}
+  aciklama={eser.summary ?? `${eser.title} — ${ROL_ADLARI[eser.role]}: Muharrem Tan. ${ilkYayinevi(eser)}.`}
+  jsonLd={jsonLd}
+  ogTur="book"
+>
+  <article class="kapsa detay">
+    <nav class="iz" aria-label="Konum">
+      <a href="/eserler/" class="bag">Eserler</a>
+      <span aria-hidden="true">/</span>
+      <span>{KATEGORI_ADLARI[eser.category]}</span>
+    </nav>
+
+    <div class="ust">
+      <div class="kapak-sar">
+        <Kapak eser={eser} genislik={290} oncelik={true} />
+        <span class="kose su"><TezhipKose boyut={34} /></span>
+        <span class="kose sa"><TezhipKose boyut={34} /></span>
+        <span class="kose au"><TezhipKose boyut={34} /></span>
+        <span class="kose aa"><TezhipKose boyut={34} /></span>
+      </div>
+
+      <div class="kunye">
+        <p class="etiket">{ROL_ADLARI[eser.role]} · {KATEGORI_ADLARI[eser.category]}</p>
+        <h1>{eser.title}</h1>
+        {eser.subtitle ? <p class="alt">{eser.subtitle}</p> : null}
+        {eser.originalTitle ? <p class="ozgun"><span class="etiket satir">Özgün adı</span><em>{eser.originalTitle}</em></p> : null}
+        {
+          eser.originalAuthor ? (
+            <p class="yazar">
+              <span class="etiket satir">Yazarı</span>
+              <a href={`/yazarlar/#${yazarKimligi(eser.originalAuthor)}`} class="bag">
+                {eser.originalAuthor}
+              </a>
+            </p>
+          ) : null
+        }
+        {
+          eser.contributors?.length ? (
+            <p class="yazar"><span class="etiket satir">Birlikte</span>{eser.contributors.join(", ")}</p>
+          ) : null
+        }
+        {eser.series ? <p class="yazar"><span class="etiket satir">Dizi</span>{eser.series}</p> : null}
+        {eser.audience ? <p class="yazar"><span class="etiket satir">Okur</span>{HEDEF_ADLARI[eser.audience]}</p> : null}
+
+        {eser.summary ? <p class="ozet">{eser.summary}</p> : null}
+        {eser.not ? <p class="not"><strong>Not:</strong> {eser.not}</p> : null}
+
+        {
+          eser.guven === "orta" ? (
+            <p class="uyari">Bu kaydın künyesi tek kaynaktan doğrulandı; baskı bilgisi eksik olabilir.</p>
+          ) : null
+        }
+      </div>
+    </div>
+
+    <section class="bolum">
+      <h2>Baskılar</h2>
+      <div class="tablo-sar">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Yayınevi</th>
+              <th scope="col">Yıl</th>
+              <th scope="col">Sayfa</th>
+              <th scope="col">ISBN</th>
+            </tr>
+          </thead>
+          <tbody>
+            {baskilar.map((b) => (
+              <tr>
+                <td>
+                  {b.publisher}
+                  {b.city ? <span class="sehir"> · {b.city}</span> : null}
+                  {b.note ? <span class="dipnot">{b.note}</span> : null}
+                </td>
+                <td class="sayi">{b.year ?? (b.date ? b.date.slice(0, 4) : "—")}</td>
+                <td class="sayi">{b.pages ?? "—"}</td>
+                <td class="sayi">
+                  {b.isbn ? <a href={aramaLinki(b.isbn)} rel="noopener nofollow" class="bag">{b.isbn}</a> : "—"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {ilkIsbn ? <p class="ipucu">ISBN'e tıklamak kitabı satan sitelerde arama açar.</p> : null}
+    </section>
+
+    {
+      eser.volumes?.length ? (
+        <section class="bolum">
+          <h2>Diziyi oluşturan kitaplar</h2>
+          <ol class="ciltler">
+            {eser.volumes.map((c) => (
+              <li>
+                <span class="cilt-ad">{c.title}</span>
+                <span class="cilt-bilgi">
+                  {c.pages ? `${c.pages} sayfa` : ""}
+                  {c.isbn ? ` · ${c.isbn}` : ""}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      ) : null
+    }
+
+    {
+      eser.sources.length ? (
+        <section class="bolum kaynak">
+          <h2>Künye kaynağı</h2>
+          <ul>
+            {eser.sources.map((k) => (
+              <li><a href={k} rel="noopener nofollow" class="bag">{new URL(k).hostname.replace(/^www\./, "")}</a></li>
+            ))}
+          </ul>
+        </section>
+      ) : null
+    }
+  </article>
+
+  {
+    oneriler.length ? (
+      <Fragment>
+        <div class="ayrac"><RumiAyrac genislik={280} /></div>
+        <section class="kapsa bolum oneri">
+          <h2>Bunlar da ilgini çekebilir</h2>
+          <div class="izgara">
+            {oneriler.map((e) => <EserKarti eser={e} genislik={165} />)}
+          </div>
+        </section>
+      </Fragment>
+    ) : null
+  }
+</Taban>
+
+<style>
+  .detay { padding-block: 2rem 1rem; }
+  .iz {
+    display: flex;
+    gap: 0.5rem;
+    font-family: var(--font-arayuz);
+    font-size: 0.78rem;
+    color: var(--sessiz);
+    margin-bottom: 2rem;
+  }
+  .ust { display: grid; gap: 2.5rem; align-items: start; }
+  .kapak-sar {
+    position: relative;
+    justify-self: center;
+    line-height: 0;
+    box-shadow: 0 20px 44px -22px color-mix(in srgb, var(--murekkep) 70%, transparent);
+  }
+  .kose { position: absolute; color: var(--varak); opacity: 0.9; line-height: 0; }
+  .su { top: 6px; left: 6px; }
+  .sa { top: 6px; right: 6px; transform: scaleX(-1); }
+  .au { bottom: 6px; left: 6px; transform: scaleY(-1); }
+  .aa { bottom: 6px; right: 6px; transform: scale(-1); }
+
+  h1 { font-size: clamp(2rem, 5vw, 3.1rem); margin: 0.4rem 0 0.5rem; }
+  .alt {
+    font-family: var(--font-baslik);
+    font-size: 1.25rem;
+    font-style: italic;
+    color: var(--bakir);
+    margin: 0 0 1.2rem;
+  }
+  .satir { display: inline-block; min-width: 6.5rem; color: var(--sessiz); }
+  .ozgun, .yazar { margin: 0.3rem 0; font-size: 0.98rem; }
+  .ozgun em { font-family: var(--font-baslik); font-size: 1.05rem; }
+  .ozet { margin-top: 1.5rem; max-width: 62ch; }
+  .not, .uyari {
+    margin-top: 1rem;
+    padding: 0.8rem 1rem;
+    background: var(--kagit-2);
+    border-inline-start: 3px solid var(--varak);
+    font-size: 0.92rem;
+    max-width: 62ch;
+  }
+  .uyari { border-inline-start-color: var(--nar); color: var(--sessiz); }
+
+  .bolum { margin-top: 3.25rem; }
+  .bolum h2 {
+    font-size: 1.35rem;
+    margin-bottom: 0.9rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--kenar);
+  }
+  .tablo-sar { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+  th {
+    text-align: left;
+    font-family: var(--font-arayuz);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--sessiz);
+    font-weight: 600;
+    padding: 0.5rem 0.75rem 0.5rem 0;
+  }
+  td { padding: 0.65rem 0.75rem 0.65rem 0; border-top: 1px solid var(--kenar); vertical-align: top; }
+  .sayi { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .sehir { color: var(--sessiz); }
+  .dipnot { display: block; font-size: 0.82rem; color: var(--sessiz); }
+  .ipucu { font-size: 0.8rem; color: var(--sessiz); margin-top: 0.6rem; }
+
+  .ciltler { margin: 0; padding-inline-start: 1.1rem; }
+  .ciltler li { margin-bottom: 0.45rem; }
+  .cilt-ad { font-family: var(--font-baslik); font-size: 1.1rem; }
+  .cilt-bilgi { display: block; font-size: 0.82rem; color: var(--sessiz); }
+
+  .kaynak ul { margin: 0; padding-inline-start: 1.1rem; font-size: 0.9rem; }
+  .ayrac { display: flex; justify-content: center; color: var(--varak); margin-top: 3rem; }
+  .oneri .izgara {
+    display: grid;
+    gap: 2rem 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 160px), 1fr));
+  }
+  @media (min-width: 56rem) {
+    .ust { grid-template-columns: auto 1fr; gap: 3.5rem; }
+    .kapak-sar { justify-self: start; }
+  }
+</style>

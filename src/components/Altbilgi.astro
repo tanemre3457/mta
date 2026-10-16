@@ -1,0 +1,113 @@
+---
+import KilimBordur from "./motifs/KilimBordur.astro";
+import MostarCizgi from "./motifs/MostarCizgi.astro";
+import Yildiz8 from "./motifs/Yildiz8.astro";
+
+const yil = new Date().getFullYear();
+---
+
+<footer class="alt">
+  <KilimBordur yukseklik={10} class="bordur" />
+  <div class="kapsa ic">
+    <div class="sutun imza">
+      <a href="/" class="logo">
+        <Yildiz8 boyut={26} kalinlik={1.3} />
+        <span>
+          <strong>Muharrem Tan</strong>
+          <span class="rol">Mütercim · Arapça–Türkçe çevirmen · Yazar</span>
+        </span>
+      </a>
+      <MostarCizgi genislik={300} class="mostar" />
+      <p class="not">İstanbul'dan Kahire'ye uzanan bir okuma hattının izinde.</p>
+    </div>
+
+    <nav class="sutun" aria-label="Alt menü">
+      <h2 class="etiket">Site</h2>
+      <a href="/hakkinda/" class="bag">Hakkında</a>
+      <a href="/eserler/" class="bag">Eserler</a>
+      <a href="/yazarlar/" class="bag">Çevrilen yazarlar</a>
+      <a href="/yazilar/" class="bag">Yazılar</a>
+      <a href="/akademik/" class="bag">Akademik</a>
+    </nav>
+
+    <div class="sutun">
+      <h2 class="etiket">İletişim</h2>
+      <a class="bag" href="tel:+905325909780">+90 532 590 97 80</a>
+      <a class="bag" href="https://wa.me/905325909780" rel="noopener">WhatsApp</a>
+      <!-- E-posta JS ile birleşiyor: sayfa kaynağında düz metin adres
+           bırakmak, toplayıcı botlara doğrudan davet. -->
+      <a class="bag eposta" href="#" data-k="muharremtan" data-a="gmail.com">e-posta</a>
+      <a href="/iletisim/" class="bag">İletişim sayfası</a>
+    </div>
+  </div>
+
+  <div class="kapsa telif">
+    <p>© {yil} Muharrem Tan. Tüm hakları saklıdır.</p>
+    <p class="ince">
+      Kapak görselleri yayınevlerine aittir; izinle kullanılır.
+    </p>
+  </div>
+</footer>
+
+<script is:inline>
+  (function () {
+    document.querySelectorAll(".eposta").forEach(function (a) {
+      var adres = a.getAttribute("data-k") + "@" + a.getAttribute("data-a");
+      a.setAttribute("href", "mailto:" + adres);
+      a.textContent = adres;
+    });
+  })();
+</script>
+
+<style>
+  .alt {
+    margin-top: 5rem;
+    background: var(--kagit-2);
+    border-top: 1px solid var(--kenar);
+  }
+  .bordur { display: block; margin-top: -1px; opacity: 0.85; }
+  .ic {
+    display: grid;
+    gap: 2.5rem;
+    padding-block: 3rem 2rem;
+    grid-template-columns: 1fr;
+  }
+  .sutun { display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-start; }
+  .sutun .etiket { margin-bottom: 0.35rem; }
+  .imza { gap: 1rem; }
+  .logo { display: flex; gap: 0.7rem; align-items: center; color: var(--bakir); }
+  .logo strong {
+    display: block;
+    font-family: var(--font-baslik);
+    font-size: 1.25rem;
+    color: var(--murekkep);
+  }
+  .rol {
+    font-family: var(--font-arayuz);
+    font-size: 0.75rem;
+    color: var(--sessiz);
+  }
+  .mostar { color: var(--murekkep); opacity: 0.45; max-width: 100%; }
+  .not {
+    margin: 0;
+    font-size: 0.9rem;
+    font-style: italic;
+    color: var(--sessiz);
+    max-width: 34ch;
+  }
+  .telif {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.5rem;
+    justify-content: space-between;
+    padding-block: 1.1rem;
+    border-top: 1px solid var(--kenar);
+    font-family: var(--font-arayuz);
+    font-size: 0.74rem;
+    color: var(--sessiz);
+  }
+  .telif p { margin: 0; }
+  @media (min-width: 48rem) {
+    .ic { grid-template-columns: 1.6fr 1fr 1fr; }
+  }
+</style>

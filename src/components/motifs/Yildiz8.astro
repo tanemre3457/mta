@@ -1,0 +1,44 @@
+---
+/**
+ * Sekiz köşeli yıldız (Rub el-hizb esinli) — sitenin imzası.
+ *
+ * GEOMETRİ KODLA ÜRETİLİYOR: iki kare, biri 45° döndürülmüş. Hazır bir
+ * SVG yolu yapıştırmak, oranı değiştirmek gerektiğinde elle sayı düzeltmek
+ * demekti; burada köşeler trigonometriden çıkıyor ve her boyutta düzgün.
+ */
+interface Props {
+  boyut?: number;
+  class?: string;
+  kalinlik?: number;
+  dolu?: boolean;
+}
+const { boyut = 24, class: sinif = "", kalinlik = 1.25, dolu = false } = Astro.props;
+
+const r = 50;
+const merkez = 50;
+/** Sekizgen yıldızın köşeleri: dış ve iç yarıçap dönüşümlü. */
+const icR = r * 0.414 * Math.SQRT2; // iki karenin kesişimi
+const noktalar = Array.from({ length: 16 }, (_, i) => {
+  const aci = (Math.PI / 8) * i - Math.PI / 2;
+  const yaricap = i % 2 === 0 ? r : icR;
+  return `${(merkez + yaricap * Math.cos(aci)).toFixed(2)},${(merkez + yaricap * Math.sin(aci)).toFixed(2)}`;
+}).join(" ");
+---
+
+<svg
+  viewBox="0 0 100 100"
+  width={boyut}
+  height={boyut}
+  class={sinif}
+  aria-hidden="true"
+  focusable="false"
+>
+  <polygon
+    points={noktalar}
+    fill={dolu ? "currentColor" : "none"}
+    stroke="currentColor"
+    stroke-width={kalinlik}
+    stroke-linejoin="round"
+    opacity={dolu ? 0.9 : 1}
+  />
+</svg>

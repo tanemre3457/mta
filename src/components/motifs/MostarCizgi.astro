@@ -1,0 +1,49 @@
+---
+/**
+ * Mostar köprüsü ve minare — tek çizgi siluet, footer'ın imzası.
+ *
+ * Balkan esintisinin görünür tek figürü bu. Fotoğraf değil çizgi, çünkü
+ * site bir kitabın iç kapağı gibi durmalı; stok fotoğraf o hissi bozuyor.
+ */
+interface Props {
+  class?: string;
+  genislik?: number;
+}
+const { class: sinif = "", genislik = 360 } = Astro.props;
+---
+
+<svg
+  viewBox="0 0 360 90"
+  width={genislik}
+  height={genislik * 0.25}
+  class={sinif}
+  aria-hidden="true"
+  focusable="false"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <!-- Su çizgisi -->
+  <path d="M0 84 H360" opacity="0.35" />
+  <path d="M18 88 H120 M150 88 H250 M280 88 H344" opacity="0.2" />
+  <!-- Köprü kemeri -->
+  <path d="M70 78 C 90 30, 230 30, 250 78" />
+  <path d="M62 78 C 86 22, 234 22, 258 78" opacity="0.65" />
+  <!-- Köprü ayakları ve kuleler -->
+  <path d="M62 78 V 58 H44 V 78" opacity="0.8" />
+  <path d="M258 78 V 58 H276 V 78" opacity="0.8" />
+  <path d="M44 58 V 44 H30 V 78" opacity="0.6" />
+  <path d="M276 58 V 44 H290 V 78" opacity="0.6" />
+  <!-- Minare -->
+  <path d="M316 78 V 36" />
+  <path d="M310 36 H322" />
+  <path d="M316 36 L316 24" />
+  <path d="M310 24 C 310 16, 322 16, 322 24 Z" />
+  <path d="M316 16 V 8" opacity="0.7" />
+  <circle cx="316" cy="6" r="2" opacity="0.7" />
+  <!-- Karşı yaka evleri -->
+  <path d="M296 78 V 62 H308 V 78" opacity="0.45" />
+  <path d="M12 78 V 66 H26 V 78" opacity="0.45" />
+</svg>

@@ -1,0 +1,424 @@
+---
+import Taban from "../../layouts/Taban.astro";
+import EserKarti from "../../components/EserKarti.astro";
+import {
+  HEDEF_ADLARI,
+  KATEGORI_ADLARI,
+  KATEGORI_RENKLERI,
+  ROL_ADLARI,
+  ilkYayinevi,
+  sonYil,
+  tumEserler,
+  type Eser,
+} from "../../lib/books";
+
+const eserler = await tumEserler();
+
+/** Filtre seçenekleri katalogdan türüyor — elle liste tutulmuyor. */
+const kategoriler = [...new Set(eserler.map((e) => e.category))].sort((a, b) =>
+  KATEGORI_ADLARI[a].localeCompare(KATEGORI_ADLARI[b], "tr"),
+);
+const roller = [...new Set(eserler.map((e) => e.role))];
+const yayinevleri = [...new Set(eserler.flatMap((e) => e.editions.map((b) => b.publisher)))].sort(
+  (a, b) => a.localeCompare(b, "tr"),
+);
+const onyillar = [...new Set(eserler.map((e) => sonYil(e)).filter(Boolean).map((y) => Math.floor((y as number) / 10) * 10))].sort(
+  (a, b) => b - a,
+);
+
+/** Arama ve filtreleme istemcide; 53 kayıt için indeks sayfaya gömülüyor. */
+const indeks = eserler.map((e: Eser) => ({
+  slug: e.slug,
+  rol: e.role,
+  kategori: e.category,
+  hedef: e.audience ?? "genel",
+  yil: sonYil(e) ?? 0,
+  yayinevi: e.editions.map((b) => b.publisher),
+  metin: [
+    e.title,
+    e.subtitle ?? "",
+    e.originalTitle ?? "",
+    e.originalAuthor ?? "",
+    e.series ?? "",
+    KATEGORI_ADLARI[e.category],
+    ilkYayinevi(e),
+  ]
+    .join(" ")
+    .toLocaleLowerCase("tr"),
+}));
+---
+
+<Taban
+  baslik="Eserler"
+  aciklama={`Muharrem Tan'ın çeviri, telif, derleme ve editörlük çalışmaları: ${eserler.length} eser, ${KATEGORI_ADLARI ? Object.keys(KATEGORI_ADLARI).length : 0} konu başlığı altında.`}
+>
+  <section class="kapsa bas">
+    <p class="etiket">Katalog</p>
+    <h1>Eserler</h1>
+    <p class="ozet">
+      Çeviri, telif, derleme ve editörlük çalışmalarının tamamı. Arama kutusuna kitap adı,
+      yazar ya da yayınevi yazabilirsin.
+    </p>
+  </section>
+
+  <section class="kapsa araclar" aria-label="Filtreler">
+    <div class="arama-sar">
+      <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6">
+        <circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" stroke-linecap="round" />
+      </svg>
+      <input
+        id="arama"
+        type="search"
+        placeholder="Kitap, yazar ya da yayınevi ara…"
+        aria-label="Eserlerde ara"
+        autocomplete="off"
+      />
+    </div>
+
+    <div class="secimler">
+      <label>
+        <span class="etiket">Rol</span>
+        <select id="f-rol">
+          <option value="">Hepsi</option>
+          {roller.map((r) => <option value={r}>{ROL_ADLARI[r]}</option>)}
+        </select>
+      </label>
+      <label>
+        <span class="etiket">Konu</span>
+        <select id="f-kategori">
+          <option value="">Hepsi</option>
+          {kategoriler.map((k) => <option value={k}>{KATEGORI_ADLARI[k]}</option>)}
+        </select>
+      </label>
+      <label>
+        <span class="etiket">Okur</span>
+        <select id="f-hedef">
+          <option value="">Hepsi</option>
+          {Object.entries(HEDEF_ADLARI).map(([k, v]) => <option value={k}>{v}</option>)}
+        </select>
+      </label>
+      <label>
+        <span class="etiket">Yayınevi</span>
+        <select id="f-yayinevi">
+          <option value="">Hepsi</option>
+          {yayinevleri.map((y) => <option value={y}>{y}</option>)}
+        </select>
+      </label>
+      <label>
+        <span class="etiket">On yıl</span>
+        <select id="f-onyil">
+          <option value="">Hepsi</option>
+          {onyillar.map((o) => <option value={o}>{o}'ler</option>)}
+        </select>
+      </label>
+      <label>
+        <span class="etiket">Sıralama</span>
+        <select id="f-sira">
+          <option value="yeni">Yeniden eskiye</option>
+          <option value="eski">Eskiden yeniye</option>
+          <option value="ad">A → Z</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="durum-satir">
+      <p id="durum" class="durum" role="status">{eserler.length} eser</p>
+      <div class="gorunum" role="group" aria-label="Görünüm">
+        <button type="button" id="g-izgara" class="gorunum-dugme etkin" aria-pressed="true">Izgara</button>
+        <button type="button" id="g-raf" class="gorunum-dugme" aria-pressed="false">Raf</button>
+        <button type="button" id="sifirla" class="gorunum-dugme temizle" hidden>Filtreleri temizle</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="kapsa liste">
+    <div id="izgara" class="izgara">
+      {eserler.map((e) => (
+        <article class="oge" data-slug={e.slug}>
+          <EserKarti eser={e} />
+        </article>
+      ))}
+    </div>
+
+    <!-- Raf görünümü: kitap sırtları, kategori rengiyle. Aynı veriyi iki
+         kez çizmek yerine ayrı bir liste; sırtta kapak değil tipografi var. -->
+    <ol id="raf" class="raf" hidden>
+      {eserler.map((e) => (
+        <li class="sirt-oge" data-slug={e.slug}>
+          <a href={`/eserler/${e.slug}/`} class="sirt" style={`--renk:${KATEGORI_RENKLERI[e.category]}`}>
+            <span class="sirt-ad">{e.title}</span>
+            <span class="sirt-yil">{sonYil(e) ?? ""}</span>
+          </a>
+        </li>
+      ))}
+    </ol>
+
+    <p id="bos" class="bos" hidden>
+      Bu filtrelerle eşleşen eser yok. <button type="button" id="bos-sifirla" class="bag">Filtreleri temizle</button>
+    </p>
+  </section>
+</Taban>
+
+<script is:inline define:vars={{ indeks }}>
+  (function () {
+    var arama = document.getElementById("arama");
+    var alanlar = {
+      rol: document.getElementById("f-rol"),
+      kategori: document.getElementById("f-kategori"),
+      hedef: document.getElementById("f-hedef"),
+      yayinevi: document.getElementById("f-yayinevi"),
+      onyil: document.getElementById("f-onyil"),
+      sira: document.getElementById("f-sira"),
+    };
+    var izgara = document.getElementById("izgara");
+    var raf = document.getElementById("raf");
+    var durum = document.getElementById("durum");
+    var bos = document.getElementById("bos");
+    var sifirla = document.getElementById("sifirla");
+
+    /* Türkçe arama: "İstanbul" yazan da "istanbul" yazan da bulsun.
+       toLowerCase() İ harfini yanlış çeviriyor, toLocaleLowerCase("tr") doğru. */
+    function kucult(s) {
+      return (s || "").toLocaleLowerCase("tr");
+    }
+
+    function durumuOku() {
+      var p = new URLSearchParams(location.search);
+      if (p.get("q")) arama.value = p.get("q");
+      Object.keys(alanlar).forEach(function (ad) {
+        var d = p.get(ad);
+        if (d) alanlar[ad].value = d;
+      });
+    }
+
+    function durumuYaz() {
+      var p = new URLSearchParams();
+      if (arama.value.trim()) p.set("q", arama.value.trim());
+      Object.keys(alanlar).forEach(function (ad) {
+        if (alanlar[ad].value && ad !== "sira") p.set(ad, alanlar[ad].value);
+        if (ad === "sira" && alanlar[ad].value !== "yeni") p.set(ad, alanlar[ad].value);
+      });
+      var yeni = p.toString() ? "?" + p.toString() : location.pathname;
+      history.replaceState(null, "", yeni);
+      sifirla.hidden = !p.toString();
+    }
+
+    function uygula() {
+      var q = kucult(arama.value.trim());
+      var secili = {
+        rol: alanlar.rol.value,
+        kategori: alanlar.kategori.value,
+        hedef: alanlar.hedef.value,
+        yayinevi: alanlar.yayinevi.value,
+        onyil: alanlar.onyil.value,
+      };
+
+      var gecenler = indeks.filter(function (k) {
+        if (q && k.metin.indexOf(q) === -1) return false;
+        if (secili.rol && k.rol !== secili.rol) return false;
+        if (secili.kategori && k.kategori !== secili.kategori) return false;
+        if (secili.hedef && k.hedef !== secili.hedef) return false;
+        if (secili.yayinevi && k.yayinevi.indexOf(secili.yayinevi) === -1) return false;
+        if (secili.onyil && Math.floor(k.yil / 10) * 10 !== Number(secili.onyil)) return false;
+        return true;
+      });
+
+      var sira = alanlar.sira.value;
+      gecenler.sort(function (a, b) {
+        if (sira === "eski") return a.yil - b.yil;
+        if (sira === "ad") return a.slug.localeCompare(b.slug, "tr");
+        return b.yil - a.yil;
+      });
+
+      var konum = {};
+      gecenler.forEach(function (k, i) { konum[k.slug] = i; });
+
+      [izgara, raf].forEach(function (kap) {
+        Array.prototype.forEach.call(kap.children, function (oge) {
+          var s = oge.getAttribute("data-slug");
+          var gorunur = Object.prototype.hasOwnProperty.call(konum, s);
+          oge.hidden = !gorunur;
+          /* Sıralama DOM'u yeniden kurmadan, flex/grid order ile. */
+          oge.style.order = gorunur ? String(konum[s]) : "";
+        });
+      });
+
+      durum.textContent =
+        gecenler.length === indeks.length
+          ? indeks.length + " eser"
+          : gecenler.length + " eser (toplam " + indeks.length + ")";
+      bos.hidden = gecenler.length !== 0;
+      durumuYaz();
+    }
+
+    arama.addEventListener("input", uygula);
+    Object.keys(alanlar).forEach(function (ad) {
+      alanlar[ad].addEventListener("change", uygula);
+    });
+
+    function temizle() {
+      arama.value = "";
+      Object.keys(alanlar).forEach(function (ad) {
+        alanlar[ad].value = ad === "sira" ? "yeni" : "";
+      });
+      uygula();
+    }
+    sifirla.addEventListener("click", temizle);
+    document.getElementById("bos-sifirla").addEventListener("click", temizle);
+
+    var gIzgara = document.getElementById("g-izgara");
+    var gRaf = document.getElementById("g-raf");
+    function gorunum(rafMi) {
+      izgara.hidden = rafMi;
+      raf.hidden = !rafMi;
+      gIzgara.classList.toggle("etkin", !rafMi);
+      gRaf.classList.toggle("etkin", rafMi);
+      gIzgara.setAttribute("aria-pressed", String(!rafMi));
+      gRaf.setAttribute("aria-pressed", String(rafMi));
+    }
+    gIzgara.addEventListener("click", function () { gorunum(false); });
+    gRaf.addEventListener("click", function () { gorunum(true); });
+
+    durumuOku();
+    uygula();
+  })();
+</script>
+
+<style>
+  .bas { padding-block: clamp(2.5rem, 6vw, 4rem) 1.5rem; }
+  .bas h1 { font-size: clamp(2.4rem, 6vw, 3.6rem); margin: 0.4rem 0 0.7rem; }
+  .ozet { max-width: 54ch; color: var(--sessiz); margin: 0; }
+
+  .araclar {
+    position: sticky;
+    top: 4.1rem;
+    z-index: 20;
+    background: color-mix(in srgb, var(--kagit) 92%, transparent);
+    backdrop-filter: blur(8px);
+    padding-block: 1rem;
+    border-bottom: 1px solid var(--kenar);
+  }
+  .arama-sar {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    border: 1px solid var(--kenar);
+    background: var(--kagit-2);
+    padding: 0 0.9rem;
+    color: var(--sessiz);
+  }
+  .arama-sar:focus-within { border-color: var(--bakir); }
+  #arama {
+    flex: 1;
+    border: 0;
+    background: transparent;
+    padding: 0.75rem 0;
+    font-family: var(--font-govde);
+    font-size: 1rem;
+    color: var(--is);
+    outline: none;
+  }
+  .secimler {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+    gap: 0.6rem;
+    margin-top: 0.75rem;
+  }
+  .secimler label { display: flex; flex-direction: column; gap: 0.2rem; }
+  select {
+    appearance: none;
+    border: 1px solid var(--kenar);
+    background: var(--kagit-2);
+    color: var(--is);
+    font-family: var(--font-arayuz);
+    font-size: 0.82rem;
+    padding: 0.45rem 0.6rem;
+    border-radius: 0;
+  }
+  select:hover { border-color: var(--bakir); }
+
+  .durum-satir {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.8rem;
+  }
+  .durum {
+    margin: 0;
+    font-family: var(--font-arayuz);
+    font-size: 0.8rem;
+    color: var(--sessiz);
+  }
+  .gorunum { display: flex; gap: 0.4rem; }
+  .gorunum-dugme {
+    border: 1px solid var(--kenar);
+    background: transparent;
+    color: var(--sessiz);
+    font-family: var(--font-arayuz);
+    font-size: 0.78rem;
+    padding: 0.35rem 0.75rem;
+    cursor: pointer;
+  }
+  .gorunum-dugme.etkin {
+    border-color: var(--murekkep);
+    color: var(--murekkep);
+    background: var(--kagit-2);
+  }
+  .temizle { color: var(--nar); border-color: color-mix(in srgb, var(--nar) 40%, transparent); }
+
+  .liste { padding-block: 2.25rem 3rem; }
+  .izgara {
+    display: grid;
+    gap: 2.5rem 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 165px), 1fr));
+  }
+  .oge[hidden] { display: none; }
+
+  .raf {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    list-style: none;
+    margin: 0;
+    padding: 1.5rem 0 0;
+    border-top: 3px solid var(--kenar);
+  }
+  .sirt-oge[hidden] { display: none; }
+  .sirt {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 2.9rem;
+    height: 15rem;
+    padding: 0.85rem 0.3rem;
+    background: var(--kagit-2);
+    border: 1px solid var(--kenar);
+    border-left: 4px solid var(--renk);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .sirt:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 14px 22px -14px color-mix(in srgb, var(--murekkep) 60%, transparent);
+  }
+  .sirt-ad {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    font-family: var(--font-baslik);
+    font-size: 0.92rem;
+    color: var(--murekkep);
+    max-height: 11.5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .sirt-yil {
+    font-family: var(--font-arayuz);
+    font-size: 0.62rem;
+    color: var(--sessiz);
+  }
+  .bos { margin-top: 2rem; color: var(--sessiz); }
+  .bos button { border: 0; background: none; cursor: pointer; font: inherit; color: var(--bakir); }
+</style>

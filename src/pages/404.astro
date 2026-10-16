@@ -1,0 +1,51 @@
+---
+import Taban from "../layouts/Taban.astro";
+import Yildiz8 from "../components/motifs/Yildiz8.astro";
+---
+
+<Taban baslik="Sayfa bulunamadı" aciklama="Aradığınız sayfa bulunamadı.">
+  <section class="kapsa bos">
+    <Yildiz8 boyut={54} kalinlik={1} class="yildiz" />
+    <h1>Bu sayfa çeviride kayboldu</h1>
+    <p>
+      Aradığınız adres taşınmış ya da hiç var olmamış olabilir. Katalogdan devam
+      edebilirsiniz.
+    </p>
+    <div class="dugmeler">
+      <a href="/" class="dugme">Ana sayfa</a>
+      <a href="/eserler/" class="dugme ikincil">Eserler</a>
+    </div>
+  </section>
+</Taban>
+
+<style>
+  .bos {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.8rem;
+    padding-block: clamp(4rem, 12vw, 8rem);
+  }
+  .yildiz { color: var(--varak); animation: nefes 4s ease-in-out infinite; }
+  @keyframes nefes {
+    0%, 100% { transform: rotate(0deg) scale(1); opacity: 0.85; }
+    50% { transform: rotate(22.5deg) scale(1.06); opacity: 1; }
+  }
+  h1 { font-size: clamp(1.9rem, 5vw, 2.8rem); }
+  p { max-width: 42ch; color: var(--sessiz); margin: 0 0 0.8rem; }
+  .dugmeler { display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center; }
+  .dugme {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.9rem;
+    padding-inline: 1.5rem;
+    background: var(--murekkep);
+    color: var(--kagit);
+    font-family: var(--font-arayuz);
+    font-size: 0.88rem;
+  }
+  .dugme:hover { background: var(--bakir); }
+  .ikincil { background: transparent; color: var(--murekkep); border: 1px solid var(--murekkep); }
+  .ikincil:hover { background: transparent; border-color: var(--bakir); color: var(--bakir); }
+</style>

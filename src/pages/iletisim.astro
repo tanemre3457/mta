@@ -1,0 +1,253 @@
+---
+import Taban from "../layouts/Taban.astro";
+import Yildiz8 from "../components/motifs/Yildiz8.astro";
+import RumiAyrac from "../components/motifs/RumiAyrac.astro";
+---
+
+<Taban
+  baslik="İletişim"
+  aciklama="Muharrem Tan ile iletişim: çeviri teklifi, yayın işbirliği, okur ve basın soruları."
+>
+  <section class="kapsa bas">
+    <p class="etiket">İletişim</p>
+    <h1>Yazın, ulaşın</h1>
+    <p class="ozet">
+      Çeviri teklifi, yayın işbirliği ya da bir soru — doğrudan ulaşabilirsiniz.
+    </p>
+  </section>
+
+  <section class="kapsa kanallar">
+    <a class="kanal" href="tel:+905325909780">
+      <Yildiz8 boyut={18} kalinlik={1.4} class="yildiz" />
+      <span class="etiket">Telefon</span>
+      <span class="deger">+90 532 590 97 80</span>
+      <span class="ince">Hafta içi mesai saatleri</span>
+    </a>
+
+    <a class="kanal" href="https://wa.me/905325909780" rel="noopener">
+      <Yildiz8 boyut={18} kalinlik={1.4} class="yildiz" />
+      <span class="etiket">WhatsApp</span>
+      <span class="deger">Mesaj gönder</span>
+      <span class="ince">Aynı numara</span>
+    </a>
+
+    <!-- E-posta adresi kaynakta düz metin durmuyor: JS ile birleşiyor ve
+         kopyalama düğmesi panoya yazıyor. -->
+    <div class="kanal">
+      <Yildiz8 boyut={18} kalinlik={1.4} class="yildiz" />
+      <span class="etiket">E-posta</span>
+      <a class="deger eposta" href="#" data-k="muharremtan" data-a="gmail.com">adres yükleniyor…</a>
+      <button type="button" class="kopyala ince" data-k="muharremtan" data-a="gmail.com">Adresi kopyala</button>
+    </div>
+  </section>
+
+  <div class="ayrac"><RumiAyrac genislik={280} /></div>
+
+  <section class="kapsa form-bolum">
+    <div class="form-metin">
+      <h2>Mesaj bırakın</h2>
+      <p>
+        Formu doldurduğunuzda mesajınız doğrudan e-posta olarak iletilir. Yayınevi ve
+        çeviri teklifleri için kitabın adını, dilini ve yaklaşık hacmini yazmanız
+        değerlendirmeyi hızlandırır.
+      </p>
+      <p class="kvkk-not">
+        Gönderdiğiniz ad, e-posta ve mesaj yalnızca size dönüş yapmak için kullanılır;
+        üçüncü kişilerle paylaşılmaz ve pazarlama amacıyla işlenmez.
+      </p>
+    </div>
+
+    <form id="iletisim-form" class="form" method="post" action="https://api.web3forms.com/submit">
+      <!-- Formun çalışması için Web3Forms anahtarı gerekiyor; kuruluma
+           kadar JS gönderimi engelliyor ve kullanıcıya e-posta öneriyor. -->
+      <input type="hidden" name="access_key" value="" />
+      <input type="hidden" name="subject" value="muharremtan.com — yeni mesaj" />
+      <input type="hidden" name="from_name" value="muharremtan.com" />
+      <!-- Bal küpü: botlar doldurur, insanlar görmez. -->
+      <input type="checkbox" name="botcheck" class="bal" tabindex="-1" autocomplete="off" />
+
+      <label>
+        <span>Adınız</span>
+        <input type="text" name="ad" required autocomplete="name" />
+      </label>
+      <label>
+        <span>E-postanız</span>
+        <input type="email" name="eposta" required autocomplete="email" />
+      </label>
+      <label>
+        <span>Konu</span>
+        <select name="konu">
+          <option>Çeviri teklifi</option>
+          <option>Yayınevi işbirliği</option>
+          <option>Okur sorusu</option>
+          <option>Basın ve söyleşi</option>
+          <option>Diğer</option>
+        </select>
+      </label>
+      <label>
+        <span>Mesajınız</span>
+        <textarea name="mesaj" rows="6" required></textarea>
+      </label>
+      <label class="onay">
+        <input type="checkbox" name="kvkk" required />
+        <span>
+          Mesajımın bana dönüş yapılması amacıyla işlenmesini kabul ediyorum.
+        </span>
+      </label>
+      <button type="submit" class="gonder">Gönder</button>
+      <p id="form-durum" class="durum" role="status"></p>
+    </form>
+  </section>
+</Taban>
+
+<script is:inline>
+  (function () {
+    /* E-posta adresini birleştir. */
+    function adres(e) {
+      return e.getAttribute("data-k") + "@" + e.getAttribute("data-a");
+    }
+    document.querySelectorAll(".eposta").forEach(function (a) {
+      var m = adres(a);
+      a.setAttribute("href", "mailto:" + m);
+      a.textContent = m;
+    });
+    document.querySelectorAll(".kopyala").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var m = adres(b);
+        navigator.clipboard
+          .writeText(m)
+          .then(function () {
+            b.textContent = "Kopyalandı ✓";
+            setTimeout(function () { b.textContent = "Adresi kopyala"; }, 2200);
+          })
+          .catch(function () {
+            b.textContent = m;
+          });
+      });
+    });
+
+    /* Form uç noktası henüz tanımlı değilse gönderimi engelle ve neden
+       çalışmadığını SÖYLE — sessizce boşa giden bir form, gelmeyen
+       mesajdan daha kötü. */
+    var form = document.getElementById("iletisim-form");
+    var durum = document.getElementById("form-durum");
+    if (!form) return;
+    form.addEventListener("submit", function (olay) {
+      var anahtar = form.querySelector('input[name="access_key"]').value;
+      if (!anahtar) {
+        olay.preventDefault();
+        durum.className = "durum hata";
+        durum.textContent =
+          "Form henüz bağlanmadı. Lütfen doğrudan e-posta ya da WhatsApp ile yazın.";
+      }
+    });
+  })();
+</script>
+
+<style>
+  .bas { padding-block: clamp(2.5rem, 6vw, 4rem) 1rem; }
+  .bas h1 { font-size: clamp(2.3rem, 6vw, 3.5rem); margin: 0.35rem 0 0.7rem; }
+  .ozet { max-width: 48ch; color: var(--sessiz); margin: 0; }
+
+  .kanallar {
+    display: grid;
+    gap: 1rem;
+    padding-block: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+  }
+  .kanal {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    align-items: flex-start;
+    padding: 1.5rem;
+    background: var(--kagit-2);
+    border: 1px solid var(--kenar);
+    transition: border-color 0.25s ease, transform 0.25s ease;
+  }
+  a.kanal:hover { border-color: var(--bakir); transform: translateY(-3px); }
+  .yildiz { color: var(--varak); margin-bottom: 0.4rem; }
+  .deger {
+    font-family: var(--font-baslik);
+    font-size: 1.3rem;
+    color: var(--murekkep);
+  }
+  a.kanal:hover .deger { color: var(--bakir); }
+  .ince { font-family: var(--font-arayuz); font-size: 0.74rem; color: var(--sessiz); }
+  .kopyala {
+    margin-top: 0.3rem;
+    border: 0;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .kopyala:hover { color: var(--bakir); }
+
+  .ayrac { display: flex; justify-content: center; color: var(--varak); }
+
+  .form-bolum {
+    display: grid;
+    gap: 2.5rem;
+    padding-block: 2.5rem 4rem;
+    align-items: start;
+  }
+  .form-metin h2 { font-size: clamp(1.6rem, 3.5vw, 2.1rem); margin-bottom: 0.8rem; }
+  .form-metin p { max-width: 46ch; }
+  .kvkk-not { font-size: 0.88rem; color: var(--sessiz); }
+
+  .form { display: flex; flex-direction: column; gap: 1rem; }
+  .form label { display: flex; flex-direction: column; gap: 0.3rem; }
+  .form label > span {
+    font-family: var(--font-arayuz);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--sessiz);
+  }
+  .form input[type="text"],
+  .form input[type="email"],
+  .form select,
+  .form textarea {
+    border: 1px solid var(--kenar);
+    background: var(--kagit-2);
+    color: var(--is);
+    font-family: var(--font-govde);
+    font-size: 1rem;
+    padding: 0.65rem 0.8rem;
+    border-radius: 0;
+  }
+  .form textarea { resize: vertical; }
+  .form input:focus,
+  .form select:focus,
+  .form textarea:focus { border-color: var(--bakir); }
+  .onay { flex-direction: row !important; gap: 0.6rem !important; align-items: flex-start; }
+  .onay span {
+    font-family: var(--font-govde) !important;
+    font-size: 0.9rem !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+    color: var(--is) !important;
+  }
+  .onay input { margin-top: 0.3rem; accent-color: var(--bakir); }
+  .bal { position: absolute; left: -9999px; }
+  .gonder {
+    align-self: flex-start;
+    min-height: 2.9rem;
+    padding-inline: 1.8rem;
+    background: var(--murekkep);
+    color: var(--kagit);
+    border: 0;
+    font-family: var(--font-arayuz);
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  .gonder:hover { background: var(--bakir); }
+  .durum { margin: 0; font-size: 0.9rem; }
+  .durum.hata { color: var(--nar); }
+  @media (min-width: 56rem) {
+    .form-bolum { grid-template-columns: 1fr 1.1fr; gap: 4rem; }
+  }
+</style>

@@ -1,16 +1,294 @@
 ---
+import Taban from "../layouts/Taban.astro";
+import EserKarti from "../components/EserKarti.astro";
+import Kapak from "../components/Kapak.astro";
+import Portre from "../components/Portre.astro";
+import SayiSeridi from "../components/SayiSeridi.astro";
+import RumiAyrac from "../components/motifs/RumiAyrac.astro";
+import Yildiz8 from "../components/motifs/Yildiz8.astro";
+import { istatistikler, kategoriyeGore, tumEserler } from "../lib/books";
+
+const eserler = await tumEserler();
+const ist = istatistikler(eserler);
+const oneCikan = eserler.filter((e) => e.featured).slice(0, 5);
+
+const klasikler = kategoriyeGore(eserler, [
+  "tasavvuf",
+  "hadis-sunnet",
+  "siyer",
+  "akaid-kelam",
+  "fikih",
+  "tefsir",
+]).slice(0, 6);
+const cagdas = kategoriyeGore(eserler, [
+  "dusunce",
+  "roman",
+  "siyaset-guncel",
+  "tarih-biyografi",
+  "dinler-mezhepler",
+]).slice(0, 6);
+const cocuk = kategoriyeGore(eserler, ["cocuk-genc", "aile"]).slice(0, 6);
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: "Muharrem Tan",
+  jobTitle: "Mütercim",
+  birthDate: "1967",
+  birthPlace: { "@type": "Place", name: "Boyabat, Sinop, Türkiye" },
+  knowsLanguage: ["tr", "ar"],
+  email: "mailto:muharremtan@gmail.com",
+  telephone: "+905325909780",
+  url: "https://muharremtan.com",
+  identifier: "ISNI 0000 0000 4731 5115",
+  sameAs: [
+    "https://isni.org/isni/0000000047315115",
+    "https://data.bnf.fr/15602885/muharrem_tan/",
+    "https://1000kitap.com/yazar/muharrem-tan",
+    "https://www.kitapyurdu.com/yazar/muharrem-tan/6738.html",
+  ],
+};
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Taban
+  baslik="Muharrem Tan"
+  aciklama={`Mütercim Muharrem Tan'ın ${ist.ilkYil}'ten bugüne Arapçadan Türkçeye kazandırdığı ${ist.eser} eser: tasavvuf klasikleri, çağdaş İslam düşüncesi, Arap edebiyatı ve çocuk kitapları.`}
+  jsonLd={jsonLd}
+>
+  <!-- ------------------------------------------------- Hero -->
+  <section class="hero">
+    <div class="kapsa hero-ic">
+      <div class="soz">
+        <p class="etiket ust-etiket">Mütercim · Yazar</p>
+        <h1>Muharrem Tan</h1>
+        <p class="alt-baslik">Arapçadan Türkçeye, kalbin diliyle.</p>
+        <p class="ozet">
+          1967'de Boyabat'ta doğdu. Arapça ve İslami ilimler üzerine çalışmak için iki yıl
+          Kahire'de bulundu; İstanbul Üniversitesi Arap Dili ve Edebiyatı Bölümü'nü bitirdi.
+          {ist.yil} yılı aşkın süredir klasik ve çağdaş Arapça eserleri Türkçeye kazandırıyor.
+        </p>
+        <div class="dugmeler">
+          <a href="/eserler/" class="dugme birincil">Eserleri gör</a>
+          <a href="/hakkinda/" class="dugme ikincil">Hakkında</a>
+        </div>
+      </div>
+
+      <div class="yigin" aria-label="Öne çıkan eserler">
+        {oneCikan.map((e, i) => (
+          <a href={`/eserler/${e.slug}/`} class="yigin-oge" style={`--i:${i}`} aria-label={e.title}>
+            <Kapak eser={e} genislik={178} oncelik={i < 2} />
+          </a>
+        ))}
+      </div>
+    </div>
+    <div class="girih-fon" aria-hidden="true"></div>
+  </section>
+
+  <SayiSeridi ist={ist} />
+
+  <!-- ------------------------------------------------- Şeritler -->
+  <section class="kapsa bolum">
+    <header class="bolum-bas">
+      <h2>Klasikler</h2>
+      <p>Tasavvuf, hadis, siyer ve kelam geleneğinden Türkçeye aktarılan temel metinler.</p>
+    </header>
+    <div class="izgara">
+      {klasikler.map((e) => <EserKarti eser={e} />)}
+    </div>
+    <a href="/eserler/?kategori=tasavvuf" class="daha bag">Tüm klasikler →</a>
+  </section>
+
+  <div class="ayrac"><RumiAyrac genislik={300} /></div>
+
+  <section class="kapsa bolum">
+    <header class="bolum-bas">
+      <h2>Çağdaş düşünce ve edebiyat</h2>
+      <p>Mâlik b. Nebî'den Tevfîk el-Hakîm'e, modern Arap düşüncesi ve romanı.</p>
+    </header>
+    <div class="izgara">
+      {cagdas.map((e) => <EserKarti eser={e} />)}
+    </div>
+    <a href="/eserler/?kategori=dusunce" class="daha bag">Tümünü gör →</a>
+  </section>
+
+  <div class="ayrac"><RumiAyrac genislik={300} /></div>
+
+  <section class="kapsa bolum">
+    <header class="bolum-bas">
+      <h2>Çocuklar ve aileler için</h2>
+      <p>Bilim tarihinden peygamber kıssalarına, genç okurlar için hazırlanan diziler.</p>
+    </header>
+    <div class="izgara">
+      {cocuk.map((e) => <EserKarti eser={e} />)}
+    </div>
+    <a href="/eserler/?hedef=cocuk" class="daha bag">Tümünü gör →</a>
+  </section>
+
+  <!-- ------------------------------------------------- Kısa biyografi -->
+  <section class="biyo">
+    <div class="kapsa biyo-ic">
+      <Portre boyut={280} />
+      <div>
+        <p class="etiket">Hakkında</p>
+        <h2>Otuz beş yıldır aynı masa</h2>
+        <p>
+          Çeviri hayatı 1980'lerin sonunda başladı. Mahmûd Ebû Reyye, Mahmûd Şeltût ve
+          Mâlik b. Nebî gibi çağdaş İslam düşüncesinin temel metinleriyle açılan yol,
+          Ebû Tâlib el-Mekkî'nin dört ciltlik <em>Kûtü'l-Kulûb</em>'u, Taşköprizâde'nin
+          <em>Osmanlı Bilginleri</em>'si ve Şehristânî'nin <em>el-Milel ve'n-Nihal</em>'i
+          gibi klasiklerle sürdü.
+        </p>
+        <p>
+          {ist.yazar} ayrı yazarın eseri, {ist.yayinevi} yayınevinin kataloğunda Türkçe
+          olarak okunuyor. Serbest çevirmen ve yazar olarak çalışmalarını sürdürüyor.
+        </p>
+        <a href="/hakkinda/" class="dugme ikincil">Biyografinin tamamı</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------- İletişim -->
+  <section class="kapsa cagri">
+    <Yildiz8 boyut={30} kalinlik={1.2} class="cagri-yildiz" />
+    <h2>Çeviri teklifi, yayın işbirliği ya da bir soru</h2>
+    <p>Yayınevleri, okurlar ve araştırmacılar doğrudan ulaşabilir.</p>
+    <div class="dugmeler orta">
+      <a href="/iletisim/" class="dugme birincil">İletişim</a>
+      <a href="https://wa.me/905325909780" rel="noopener" class="dugme ikincil">WhatsApp</a>
+    </div>
+  </section>
+</Taban>
+
+<style>
+  .hero { position: relative; overflow: hidden; }
+  .hero-ic {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: 3rem;
+    padding-block: clamp(3rem, 8vw, 5.5rem) clamp(2.5rem, 6vw, 4rem);
+    align-items: center;
+  }
+  .ust-etiket { margin: 0 0 0.9rem; }
+  h1 {
+    font-size: clamp(3rem, 9vw, 5.25rem);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.4rem;
+  }
+  .alt-baslik {
+    font-family: var(--font-baslik);
+    font-size: clamp(1.25rem, 3vw, 1.7rem);
+    font-style: italic;
+    color: var(--bakir);
+    margin: 0 0 1.3rem;
+  }
+  .ozet { max-width: 46ch; margin: 0 0 1.9rem; color: var(--is); }
+
+  .dugmeler { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+  .dugmeler.orta { justify-content: center; }
+  .dugme {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.9rem;
+    padding-inline: 1.5rem;
+    font-family: var(--font-arayuz);
+    font-size: 0.88rem;
+    font-weight: 500;
+    border: 1px solid transparent;
+    transition: all 0.25s ease;
+  }
+  .birincil { background: var(--murekkep); color: var(--kagit); }
+  .birincil:hover { background: var(--bakir); }
+  .ikincil { border-color: var(--murekkep); color: var(--murekkep); }
+  .ikincil:hover { border-color: var(--bakir); color: var(--bakir); }
+
+  /* Kitap yığını: hafif perspektifli dizi, hover'da tek tek kalkıyor. */
+  .yigin {
+    display: flex;
+    justify-content: center;
+    padding-block: 1rem;
+  }
+  .yigin-oge {
+    display: block;
+    line-height: 0;
+    margin-inline-start: -3.6rem;
+    transform: rotate(calc(-3deg + var(--i) * 1.5deg)) translateY(calc(var(--i) * -3px));
+    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.3, 1), filter 0.3s ease;
+    filter: drop-shadow(0 12px 22px color-mix(in srgb, var(--murekkep) 28%, transparent));
+  }
+  .yigin-oge:first-child { margin-inline-start: 0; }
+  .yigin-oge:hover,
+  .yigin-oge:focus-visible {
+    transform: rotate(0deg) translateY(-18px) scale(1.04);
+    z-index: 2;
+    position: relative;
+  }
+
+  /* Arka planda çok soluk, yavaşça dönen girih deseni. */
+  .girih-fon {
+    position: absolute;
+    inset-block-start: -28%;
+    inset-inline-end: -22%;
+    width: min(70vw, 760px);
+    aspect-ratio: 1;
+    opacity: 0.045;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120' fill='none' stroke='%231B2A41' stroke-width='1'%3E%3Cpolygon points='60,5 68,28 92,20 84,43 108,51 85,60 108,69 84,77 92,100 68,92 60,115 52,92 28,100 36,77 12,69 35,60 12,51 36,43 28,20 52,28'/%3E%3Ccircle cx='60' cy='60' r='26'/%3E%3Ccircle cx='60' cy='60' r='40'/%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+    animation: don 90s linear infinite;
+    pointer-events: none;
+  }
+  @keyframes don {
+    to { transform: rotate(360deg); }
+  }
+
+  .bolum { padding-block: clamp(2.5rem, 6vw, 4rem); }
+  .bolum-bas { margin-bottom: 2rem; max-width: 52ch; }
+  .bolum-bas h2 { font-size: clamp(1.7rem, 4vw, 2.3rem); margin-bottom: 0.4rem; }
+  .bolum-bas p { margin: 0; color: var(--sessiz); }
+  .izgara {
+    display: grid;
+    gap: 2.25rem 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr));
+  }
+  .daha {
+    display: inline-block;
+    margin-top: 1.75rem;
+    font-family: var(--font-arayuz);
+    font-size: 0.85rem;
+  }
+  .ayrac { display: flex; justify-content: center; color: var(--varak); }
+
+  .biyo {
+    background: var(--kagit-2);
+    border-block: 1px solid var(--kenar);
+    margin-top: 3rem;
+  }
+  .biyo-ic {
+    display: grid;
+    gap: 2.5rem;
+    padding-block: clamp(2.5rem, 6vw, 4rem);
+    align-items: center;
+  }
+  .biyo h2 { font-size: clamp(1.6rem, 3.5vw, 2.1rem); margin: 0.3rem 0 1rem; }
+  .biyo p { max-width: 58ch; }
+  .biyo .dugme { margin-top: 1rem; }
+
+  .cagri {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    text-align: center;
+    padding-block: clamp(3rem, 7vw, 4.5rem);
+  }
+  .cagri-yildiz { color: var(--varak); }
+  .cagri h2 { font-size: clamp(1.6rem, 4vw, 2.2rem); max-width: 22ch; }
+  .cagri p { margin: 0 0 1rem; color: var(--sessiz); }
+
+  @media (min-width: 62rem) {
+    .hero-ic { grid-template-columns: 1.05fr 0.95fr; }
+    .biyo-ic { grid-template-columns: auto 1fr; gap: 3.5rem; }
+  }
+</style>

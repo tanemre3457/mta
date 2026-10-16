@@ -1,0 +1,329 @@
+---
+import Taban from "../layouts/Taban.astro";
+import Portre from "../components/Portre.astro";
+import Girih12 from "../components/motifs/Girih12.astro";
+import Yildiz8 from "../components/motifs/Yildiz8.astro";
+import RumiAyrac from "../components/motifs/RumiAyrac.astro";
+import { istatistikler, tumEserler, yazaraGore } from "../lib/books";
+
+const eserler = await tumEserler();
+const ist = istatistikler(eserler);
+const yazarlar = yazaraGore(eserler);
+
+/**
+ * Kronoloji INFO §1.2'den. "Güven" alanı düşük olan satırlar burada da
+ * işaretli: siteyi okuyan biri hangi bilginin doğrulanmış, hangisinin
+ * tek kaynağa dayalı olduğunu görebilsin.
+ */
+const kronoloji = [
+  { yil: "1967", olay: "Sinop'un Boyabat ilçesinde doğdu." },
+  { yil: "1980'ler", olay: "Arapça ve İslami ilimler üzerine çalışmak için iki yıl Kahire'de kaldı.", kesin: false },
+  { yil: "1988", olay: "İlk künyeli çevirisi: Mahmûd Ebû Reyye'den Muhammedî Sünnetin Aydınlatılması (Yöneliş).", vurgu: true },
+  { yil: "1990–93", olay: "Abbâsî Medenî'den Modern Düşüncenin Krizi, Mahmûd Şeltût'tan Akaid ve Şeriat." },
+  { yil: "—", olay: "İstanbul Üniversitesi Arap Dili ve Edebiyatı Bölümü'nden mezun oldu.", kesin: false },
+  { yil: "—", olay: "Bir süre Hindistan'da bulundu." },
+  { yil: "1999", olay: "Marmara Üniversitesi'nde yüksek lisans: Hindistan'ın Bölünmesi ve Hint Müslümanları (dan. Prof. Dr. İsmail Kara).", vurgu: true },
+  { yil: "2000", olay: "İz Yayıncılık ile çalışmaya başladı: Tasavvuf, Menşei ve Istılahları." },
+  { yil: "2003–09", olay: "Uysal Yayınları için çocuk ve aile kitapları; Âiz el-Karnî çevirileri." },
+  { yil: "2005–08", olay: "Moralite Yayınları: Câmiu'l-Ehâdîs derlemesi, Her Güne Bir Hadis ve Her Güne Bir Dua telifleri, Siyer Atlası editörlüğü.", vurgu: true },
+  { yil: "2007", olay: "Taşköprizâde'den Osmanlı Bilginleri (İz)." },
+  { yil: "2009", olay: "Bilim Dünyasının Yıldızları dizisi (Ağaç Kitabevi) — çocuklar için bilim tarihi." },
+  { yil: "2014", olay: "Şehristânî'den Dinler ve Mezhepler Tarihi (Kabalcı)." },
+  { yil: "2017", olay: "İbn Kayyim'den Medâricü's-Sâlikîn (İnsan, ortak çeviri)." },
+  { yil: "2018", olay: "Ebû Tâlib el-Mekkî'den dört ciltlik Kûtü'l-Kulûb (İz).", vurgu: true },
+  { yil: "2019", olay: "Râgıb el-İsfahânî'den Erdemli Yol (İz)." },
+  { yil: "2024", olay: "Tevfîk el-Hakîm'den Şark'ın Serçesi (Ketebe) — en yeni çeviri.", vurgu: true },
+];
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "ProfilePage",
+  mainEntity: {
+    "@type": "Person",
+    name: "Muharrem Tan",
+    jobTitle: "Mütercim",
+    birthDate: "1967",
+    birthPlace: { "@type": "Place", name: "Boyabat, Sinop" },
+    alumniOf: [
+      { "@type": "CollegeOrUniversity", name: "İstanbul Üniversitesi" },
+      { "@type": "CollegeOrUniversity", name: "Marmara Üniversitesi" },
+    ],
+    knowsLanguage: ["tr", "ar"],
+  },
+};
+---
+
+<Taban
+  baslik="Hakkında"
+  aciklama="Muharrem Tan'ın hayatı, çeviri yolculuğu ve akademik çalışmaları: Boyabat'tan Kahire'ye, İstanbul'dan Hindistan'a."
+  jsonLd={jsonLd}
+>
+  <section class="kapsa bas">
+    <Girih12 boyut={96} kalinlik={0.8} class="rozet" />
+    <p class="etiket">Hakkında</p>
+    <h1>Bir mütercimin masası</h1>
+  </section>
+
+  <section class="kapsa govde">
+    <div class="metin">
+      <p class="giris">
+        Muharrem Tan 1967'de Sinop'un Boyabat ilçesinde dünyaya geldi. Gençlik yıllarında
+        Arapça ve İslami ilimler üzerine araştırma yapmak için iki yıl Kahire'de kaldı;
+        dönüşünde İstanbul Üniversitesi Arap Dili ve Edebiyatı Bölümü'nden mezun oldu.
+      </p>
+      <p>
+        Bir süre Hindistan'da bulundu. Bu tecrübe, 1999'da Marmara Üniversitesi Ortadoğu ve
+        İslam Ülkeleri Enstitüsü'nde Prof. Dr. İsmail Kara danışmanlığında tamamladığı
+        <em>Hindistan'ın Bölünmesi ve Hint Müslümanları</em> başlıklı yüksek lisans teziyle
+        akademik bir çalışmaya dönüştü.
+      </p>
+      <p>
+        Çeviri hayatı 1980'lerin sonunda başladı. Mahmûd Ebû Reyye'nin hadis tartışmalarına
+        dair kitabı (1988), Mahmûd Şeltût'un <em>Akaid ve Şeriat</em>'ı ve Mâlik b. Nebî'nin
+        <em>İslam Davası</em> gibi çağdaş İslam düşüncesinin temel metinleri ilk çevirileri
+        arasındadır. Sonraki yıllarda tasavvuf klasiklerine yöneldi: Ebû Tâlib el-Mekkî'nin
+        dört ciltlik <em>Kûtü'l-Kulûb</em>'u, Râgıb el-İsfahânî'nin <em>Erdemli Yol</em>'u ve
+        İbn Kayyim'in <em>Medâricü's-Sâlikîn</em>'i (ortak çeviri) bunların başında gelir.
+        Taşköprizâde'nin <em>eş-Şakāiku'n-Nuʿmâniyye</em>'sini <em>Osmanlı Bilginleri</em>
+        adıyla, Şehristânî'nin <em>el-Milel ve'n-Nihal</em>'ini <em>Dinler ve Mezhepler
+        Tarihi</em> adıyla Türkçeye kazandırdı.
+      </p>
+      <p>
+        Arap edebiyatından Tevfîk el-Hakîm, Şerif Hatâta ve Sâlim Himmiş'i çevirdi; Mâlik b.
+        Nebî'nin hatıratını iki farklı baskıda yayımladı. Çocuklar ve gençler için Müslüman
+        bilginlerin hayatını anlatan <em>Bilim Dünyasının Yıldızları</em> dizisini ve peygamber
+        kıssalarını Türkçeye aktardı. <em>Her Güne Bir Hadis-i Şerif</em>, <em>Her Güne Bir
+        Dua</em> ve <em>Allah'ın Emri Peygamber'in Kavliyle</em> gibi telif eserler yazdı;
+        <em>Câmiu'l-Ehâdîs</em>'i derledi, <em>Siyer Atlası</em>'nın editörlüğünü yaptı.
+      </p>
+      <p>Serbest çevirmen ve yazar olarak çalışmalarını sürdürüyor.</p>
+    </div>
+
+    <aside class="yan">
+      <Portre boyut={260} />
+      <dl class="kunye">
+        <div><dt>Doğum</dt><dd>1967, Boyabat (Sinop)</dd></div>
+        <div><dt>Diller</dt><dd>Arapça → Türkçe</dd></div>
+        <div><dt>Eser</dt><dd>{ist.eser} yayımlanmış kitap</dd></div>
+        <div><dt>Yıl</dt><dd>{ist.ilkYil}–{ist.sonYil}</dd></div>
+        <div><dt>ISNI</dt><dd><a class="bag" href="https://isni.org/isni/0000000047315115" rel="noopener">0000 0000 4731 5115</a></dd></div>
+      </dl>
+    </aside>
+  </section>
+
+  <div class="ayrac"><RumiAyrac genislik={300} /></div>
+
+  <!-- --------------------------------------------- Yolculuk -->
+  <section class="kapsa yol-bolum">
+    <h2>Çeviri yolculuğu</h2>
+    <p class="alt">Boyabat'ta başlayan, Kahire ve Delhi'den geçip İstanbul'da süren bir hat.</p>
+    <svg class="yol" viewBox="0 0 900 220" role="img" aria-label="Boyabat, Kahire, İstanbul ve Hindistan arasındaki yolculuk şeması">
+      <path
+        class="rota"
+        d="M70 150 C 180 60, 300 60, 400 140 C 500 215, 620 190, 830 80"
+        fill="none"
+        stroke="var(--bakir)"
+        stroke-width="1.5"
+        stroke-dasharray="5 6"
+      />
+      <g class="durak" transform="translate(70,150)">
+        <circle r="6" fill="var(--kagit)" stroke="var(--murekkep)" stroke-width="1.5" />
+        <text y="26" text-anchor="middle">Boyabat</text>
+        <text y="42" text-anchor="middle" class="kucuk">1967</text>
+      </g>
+      <g class="durak" transform="translate(400,140)">
+        <circle r="6" fill="var(--kagit)" stroke="var(--murekkep)" stroke-width="1.5" />
+        <text y="26" text-anchor="middle">Kahire</text>
+        <text y="42" text-anchor="middle" class="kucuk">iki yıl</text>
+      </g>
+      <g class="durak" transform="translate(620,186)">
+        <circle r="6" fill="var(--kagit)" stroke="var(--murekkep)" stroke-width="1.5" />
+        <text y="26" text-anchor="middle">Hindistan</text>
+      </g>
+      <g class="durak" transform="translate(830,80)">
+        <circle r="7" fill="var(--bakir)" stroke="var(--bakir)" stroke-width="1.5" />
+        <text y="-16" text-anchor="middle">İstanbul</text>
+        <text y="-32" text-anchor="middle" class="kucuk">bugün</text>
+      </g>
+    </svg>
+  </section>
+
+  <!-- --------------------------------------------- Kronoloji -->
+  <section class="kapsa kron-bolum">
+    <h2>Kronoloji</h2>
+    <ol class="kron">
+      {kronoloji.map((k) => (
+        <li class:list={["adim", { vurgu: k.vurgu }]}>
+          <span class="dugum" aria-hidden="true"><Yildiz8 boyut={13} kalinlik={1.6} dolu={k.vurgu} /></span>
+          <span class="yil">{k.yil}</span>
+          <p class="olay">
+            {k.olay}
+            {k.kesin === false ? <span class="belirsiz" title="Yıl kesin değil">· yıl kesin değil</span> : null}
+          </p>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <!-- --------------------------------------------- Yazarlar -->
+  <section class="kapsa bulut-bolum">
+    <h2>Çevirdiği yazarlar</h2>
+    <p class="alt">{yazarlar.length} yazarın eseri Muharrem Tan'ın çevirisiyle Türkçede.</p>
+    <ul class="bulut">
+      {yazarlar.map((y) => (
+        <li>
+          <a href={`/yazarlar/#${y.kimlik}`} style={`--n:${y.eserler.length}`}>
+            {y.ad.replace(/\s*\(.*?\)\s*/g, "")}
+            <span class="adet">{y.eserler.length}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+</Taban>
+
+<style>
+  .bas {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding-block: clamp(2.5rem, 6vw, 4rem) 1rem;
+  }
+  .rozet { color: var(--varak); margin-bottom: 0.75rem; }
+  .bas h1 { font-size: clamp(2.3rem, 6vw, 3.5rem); margin-top: 0.35rem; }
+
+  .govde {
+    display: grid;
+    gap: 3rem;
+    padding-block: 2rem 3rem;
+    align-items: start;
+  }
+  .metin { max-width: 65ch; }
+  .metin p { margin: 0 0 1.2rem; }
+  .giris { font-size: 1.22rem; line-height: 1.6; color: var(--murekkep); }
+  .yan { display: flex; flex-direction: column; gap: 1.75rem; align-items: center; }
+  .kunye { margin: 0; width: 100%; max-width: 260px; }
+  .kunye div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--kenar);
+    font-size: 0.9rem;
+  }
+  .kunye dt {
+    font-family: var(--font-arayuz);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--sessiz);
+  }
+  .kunye dd { margin: 0; text-align: end; }
+
+  .ayrac { display: flex; justify-content: center; color: var(--varak); }
+  h2 { font-size: clamp(1.7rem, 4vw, 2.2rem); }
+  .alt { color: var(--sessiz); margin: 0.3rem 0 1.5rem; }
+
+  .yol-bolum { padding-block: 3rem 1rem; }
+  .yol { width: 100%; height: auto; font-family: var(--font-arayuz); }
+  .yol text { font-size: 13px; fill: var(--murekkep); }
+  .yol .kucuk { font-size: 10px; fill: var(--sessiz); }
+  .rota {
+    stroke-dasharray: 5 6;
+    animation: yuru 40s linear infinite;
+  }
+  @keyframes yuru { to { stroke-dashoffset: -220; } }
+
+  .kron-bolum { padding-block: 3rem; }
+  .kron { list-style: none; margin: 0; padding: 0; position: relative; }
+  .kron::before {
+    content: "";
+    position: absolute;
+    inset-block: 0.6rem;
+    inset-inline-start: 6px;
+    width: 1px;
+    background: linear-gradient(var(--kenar), var(--varak), var(--kenar));
+  }
+  .adim {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.25rem 1.25rem;
+    padding: 0 0 1.5rem 1.9rem;
+  }
+  .dugum {
+    position: absolute;
+    inset-inline-start: 0;
+    top: 0.25rem;
+    color: var(--varak);
+    background: var(--kagit);
+    line-height: 0;
+    padding: 2px 0;
+  }
+  .adim.vurgu .dugum { color: var(--bakir); }
+  .yil {
+    grid-column: 1;
+    font-family: var(--font-arayuz);
+    font-size: 0.74rem;
+    letter-spacing: 0.08em;
+    color: var(--sessiz);
+    min-width: 5rem;
+    padding-top: 0.2rem;
+  }
+  .adim.vurgu .yil { color: var(--bakir); font-weight: 600; }
+  .olay { grid-column: 2; margin: 0; max-width: 62ch; }
+  .belirsiz { color: var(--sessiz); font-size: 0.82rem; }
+
+  .bulut-bolum { padding-block: 1rem 3rem; }
+  .bulut {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .bulut a {
+    display: inline-flex;
+    /* ORTADAN hizalanıyor: sayı ile ad farklı punto ve farklı ailede
+       olduğu için `baseline`, küçük sayıyı üst simge gibi havada
+       bırakıyordu. */
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.4rem 0.5rem 0.4rem 0.85rem;
+    border: 1px solid var(--kenar);
+    background: var(--kagit-2);
+    font-family: var(--font-baslik);
+    line-height: 1.2;
+    /* Çok eser çevrilen yazar daha büyük görünüyor; ölçek veriye bağlı. */
+    font-size: calc(0.95rem + var(--n) * 0.055rem);
+    transition: all 0.2s ease;
+  }
+  .bulut a:hover { border-color: var(--bakir); color: var(--bakir); }
+  /* Sayı bir rozet: adla aynı satırda yüzen bir rakam yerine, kendi
+     zemini olan sabit genişlikte bir kutu. */
+  .adet {
+    display: inline-grid;
+    place-items: center;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    padding-inline: 0.3rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--bakir) 14%, transparent);
+    color: var(--bakir);
+    font-family: var(--font-arayuz);
+    font-size: 0.7rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .bulut a:hover .adet {
+    background: color-mix(in srgb, var(--bakir) 22%, transparent);
+  }
+
+  @media (min-width: 60rem) {
+    .govde { grid-template-columns: 1fr auto; gap: 4rem; }
+    .yan { position: sticky; top: 6rem; }
+  }
+</style>
